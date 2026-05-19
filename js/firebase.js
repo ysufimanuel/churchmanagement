@@ -598,3 +598,7 @@ window.markNotificationRead    = markNotificationRead;
 window.deleteNotification      = deleteNotification;
 
 console.log('[FIREBASE] Multi-tenant firebase.js loaded');
+
+
+// Pasang ke objek window di bagian paling bawah file firebase.js
+window.isFirebaseReady = isFirebaseReady;
