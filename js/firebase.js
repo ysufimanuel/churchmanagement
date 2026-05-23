@@ -536,7 +536,21 @@ async function getNotifications(userId = null) {
 }
 
 async function addNotification(data) {
-    return addDocument('notifications', { ...data, timestamp: new Date().toISOString(), read: false });
+    // Deduplikasi notifikasi ulang tahun: cek apakah sudah ada
+    // notifikasi dengan type=birthday, memberId, dan date yang sama hari ini
+    if (data.type === 'birthday' && data.memberId && data.date) {
+        try {
+            const existing = await queryDocuments('notifications', 'type', '==', 'birthday');
+            const duplicate = existing.find(
+                n => n.memberId === data.memberId && n.date === data.date
+            );
+            if (duplicate) {
+                console.log(`[FIREBASE] Birthday notif sudah ada untuk member ${data.memberId} tanggal ${data.date} — dilewati`);
+                return duplicate;
+            }
+        } catch (_) {}
+    }
+    return addDocument('notifications', { ...data, timestamp: data.timestamp || new Date().toISOString(), read: false });
 }
 
 async function markNotificationRead(id) {

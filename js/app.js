@@ -1212,24 +1212,39 @@ async function logout() {
 
 function checkSession() {
     if (isAuthReady()) {
+        let sessionInitialized = false; // flag: cegah _showMainApp dipanggil lebih dari sekali
+
         window.firebaseOnAuthStateChanged(window.auth, async (firebaseUser) => {
             if (firebaseUser) {
+                // Kalau session sudah diinisialisasi, skip — jangan reload app
+                if (sessionInitialized) {
+                    console.log('[AUTH] Auth state refreshed, session already active — skip');
+                    return;
+                }
+
                 const profile = await window.getUserProfile(firebaseUser.uid);
                 if (profile) {
-                    // Set gereja aktif dari profil
                     window.setActiveChurch(profile.churchId);
 
                     const { password: _p, ...safe } = profile;
                     currentUser = safe;
                     sessionStorage.setItem('currentUser', JSON.stringify(safe));
 
-                    // Refresh data cache dengan churchId yang sudah benar
                     await refreshDataCache();
+
+                    sessionInitialized = true; // set flag SEBELUM showMainApp
                     _showMainApp(safe);
                 }
             } else {
-                sessionStorage.removeItem('currentUser');
-                currentUser = null;
+                // User benar-benar logout
+                if (sessionInitialized) {
+                    // Hanya redirect ke login kalau session sebelumnya aktif
+                    sessionInitialized = false;
+                    sessionStorage.removeItem('currentUser');
+                    currentUser = null;
+                    document.getElementById('main-app').classList.add('hidden');
+                    document.getElementById('login-page').classList.remove('hidden');
+                }
             }
         });
         return;
@@ -1462,40 +1477,54 @@ function toggleSidebar() {
 function initDashboard() {
     const data = getData();
 
-    // Update stats
-    document.getElementById('stat-total-members').textContent = data.members.filter(m => m.status === 'aktif').length;
-    document.getElementById('stat-attendance').textContent = data.attendance.length;
+    // Update stats — optional chaining agar tidak crash saat data kosong
+    document.getElementById('stat-total-members').textContent =
+        (data.members || []).filter(m => m.status === 'aktif').length;
+    document.getElementById('stat-attendance').textContent =
+        (data.attendance || []).length;
 
-    const totalDonations = data.donations.reduce((sum, d) => sum + d.jumlah, 0);
+    const totalDonations = (data.donations || []).reduce((sum, d) => sum + (d.jumlah || 0), 0);
     document.getElementById('stat-donations').textContent = formatRupiah(totalDonations);
 
-    document.getElementById('stat-events').textContent = data.events.filter(e => e.status === 'upcoming').length;
-    document.getElementById('stat-groups').textContent = data.groups.length;
-    document.getElementById('stat-volunteers').textContent = data.volunteers.filter(v => v.status === 'aktif').length;
+    document.getElementById('stat-events').textContent =
+        (data.events || []).filter(e => e.status === 'upcoming').length;
+    document.getElementById('stat-groups').textContent =
+        (data.groups || []).length;
+    document.getElementById('stat-volunteers').textContent =
+        (data.volunteers || []).filter(v => v.status === 'aktif').length;
 
-    // Update church info
-    document.getElementById('church-name-sidebar').textContent = data.churchProfile.nama;
+    // Nama gereja dari Firestore
+    const churchId = window.getActiveChurchId ? window.getActiveChurchId() : null;
+    if (churchId) {
+        window.getChurch(churchId).then(church => {
+            if (church) {
+                const el = document.getElementById('church-name-sidebar');
+                if (el) el.textContent = church.nama;
+            }
+        });
+    } else {
+        const el = document.getElementById('church-name-sidebar');
+        if (el && data.churchProfile) el.textContent = data.churchProfile.nama || 'Gereja';
+    }
 
-    // Render activities
     renderActivityList();
-
-    // Render upcoming events
     renderUpcomingEvents();
-
-    // Render recent donations
     renderRecentDonations();
-
-    // Initialize charts
     initCharts();
-
-    // Render notifications
     renderNotifications();
 }
 
 function renderActivityList() {
     const data = getData();
     const container = document.getElementById('activity-list');
-    const activities = [...data.activities].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 6);
+    if (!container) return;
+
+    const activities = [...(data.activities || [])].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 6);
+
+    if (activities.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding:20px;">Belum ada aktivitas</p>`;
+        return;
+    }
 
     const icons = {
         member: 'fa-user',
@@ -1507,7 +1536,7 @@ function renderActivityList() {
     container.innerHTML = activities.map(a => `
         <div class="activity-item">
             <div class="activity-icon">
-                <i class="fas ${icons[a.type]}"></i>
+                <i class="fas ${icons[a.type] || 'fa-bell'}"></i>
             </div>
             <div class="activity-content">
                 <p><strong>${a.action}</strong></p>
@@ -4858,62 +4887,8 @@ function deleteUser(id) {
 // NOTIFICATIONS
 // ========================================
 
-function toggleNotifications() {
-    const dropdown = document.getElementById('notif-dropdown');
-    dropdown.classList.toggle('show');
-}
-
-function renderNotifications() {
-    const data = getData();
-    const container = document.getElementById('notif-list');
-    const badge = document.getElementById('notif-count');
-
-    const unread = data.notifications.filter(n => !n.read);
-    badge.textContent = unread.length;
-    badge.style.display = unread.length > 0 ? 'flex' : 'none';
-
-    const sorted = [...data.notifications].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    container.innerHTML = sorted.map(n => `
-        <div class="notif-item ${n.read ? 'read' : 'unread'}" onclick="markNotificationRead(${n.id})">
-            <div class="notif-icon"><i class="fas fa-${getNotifIcon(n.type)}"></i></div>
-            <div class="notif-content">
-                <h4>${n.title}</h4>
-                <p>${n.message}</p>
-                <span>${timeAgo(n.timestamp)}</span>
-            </div>
-        </div>
-    `).join('') || `<p class="text-center" style="padding: 20px; color: var(--text-muted);">${currentLanguage === 'id' ? 'Tidak ada notifikasi' : 'No notifications'}</p>`;
-}
-
-function getNotifIcon(type) {
-    const icons = {
-        member: 'user',
-        donation: 'hand-holding-heart',
-        event: 'calendar',
-        attendance: 'clipboard-check',
-        announcement: 'bullhorn',
-        system: 'cog'
-    };
-    return icons[type] || 'bell';
-}
-
-function markNotificationRead(id) {
-    const data = getData();
-    const notif = data.notifications.find(n => n.id === id);
-    if (notif) {
-        notif.read = true;
-        saveData(data);
-        renderNotifications();
-    }
-}
-
-function markAllRead() {
-    const data = getData();
-    data.notifications.forEach(n => n.read = true);
-    saveData(data);
-    renderNotifications();
-}
+// toggleNotifications, renderNotifications, markNotificationRead, markAllRead
+// — versi Firestore ada di bawah (baris ~5152)
 
 // ========================================
 // MODAL SYSTEM
@@ -5017,6 +4992,15 @@ function showToast(message, type = 'info') {
 
 let notifications = [];
 let unreadCount = 0;
+
+// Helper untuk real-time patch layer (realtime-firebase.js)
+// Memperbarui state notifikasi tanpa re-fetch ke Firebase
+window._setNotificationsState = function(sorted) {
+    notifications = sorted || [];
+    unreadCount = notifications.filter(n => !n.read).length;
+    updateNotificationBadge();
+    renderNotifications();
+};
 
 // Load notifications from Firebase
 async function loadNotifications() {
