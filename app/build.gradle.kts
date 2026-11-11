@@ -13,8 +13,13 @@ val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use(::load)
 }
-fun quotedBuildConfig(name: String): String =
-    "\"\u0024{localProperties.getProperty(name, "")}\""
+fun quotedBuildConfig(name: String): String {
+    val value = localProperties.getProperty(name, "")
+    val escaped = value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+    return "\"$escaped\""
+}
 
 android {
     namespace = "com.growthaxys.churchmanagements"
