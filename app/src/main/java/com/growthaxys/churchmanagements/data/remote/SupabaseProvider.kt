@@ -1,7 +1,7 @@
 package com.growthaxys.churchmanagements.data.remote
 
 import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.gotrue.Auth
+import io.github.jan.supabase.gotrue.GoTrue
 import io.github.jan.supabase.postgrest.Postgrest
 
 object SupabaseProvider {
@@ -9,7 +9,7 @@ object SupabaseProvider {
         supabaseUrl = url,
         supabaseKey = publishableKey
     ) {
-        install(Auth)
+        install(GoTrue)
         install(Postgrest)
     }
 }
