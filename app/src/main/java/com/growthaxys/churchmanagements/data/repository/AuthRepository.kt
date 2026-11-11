@@ -4,7 +4,7 @@ import com.growthaxys.churchmanagements.data.remote.ProfileDto
 import com.growthaxys.churchmanagements.domain.model.AppRole
 import com.growthaxys.churchmanagements.domain.model.UserProfile
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.gotrue
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -25,7 +25,7 @@ class SupabaseAuthRepository @Inject constructor(
     }
 
     override suspend fun signIn(email: String, password: String): UserProfile {
-        supabase.gotrue.loginWith(Email) {
+        supabase.gotrue.signInWith(Email) {
             this.email = email.trim()
             this.password = password
         }
@@ -52,6 +52,6 @@ class SupabaseAuthRepository @Inject constructor(
     }
 
     override suspend fun signOut() {
-        supabase.gotrue.logout()
+        supabase.gotrue.signOut()
     }
 }
