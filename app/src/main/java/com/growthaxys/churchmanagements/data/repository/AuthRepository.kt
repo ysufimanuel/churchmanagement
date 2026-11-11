@@ -1,5 +1,7 @@
 package com.growthaxys.churchmanagements.data.repository
 
+import com.growthaxys.churchmanagements.data.remote.ProfileDto
+import com.growthaxys.churchmanagements.domain.model.AppRole
 import com.growthaxys.churchmanagements.domain.model.UserProfile
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.providers.builtin.Email
@@ -33,18 +35,22 @@ class SupabaseAuthRepository @Inject constructor(
 
     private suspend fun loadProfile(userId: String): UserProfile {
         val dto = supabase.from("profiles").select(Columns.ALL) {
-            eq("id", userId)
-        }.decodeSingle<com.growthaxys.churchmanagements.data.remote.ProfileDto>()
+            filter {
+                eq("id", userId)
+            }
+        }.decodeSingle<ProfileDto>()
         return UserProfile(
             id = dto.id,
             name = dto.nama,
             username = dto.username,
             email = dto.email,
-            role = com.growthaxys.churchmanagements.domain.model.AppRole.from(dto.role),
+            role = AppRole.from(dto.role),
             avatarUrl = dto.avatarUrl,
             churchId = dto.churchId
         )
     }
 
-    override suspend fun signOut() { supabase.gotrue.logout() }
+    override suspend fun signOut() {
+        supabase.gotrue.logout()
+    }
 }
