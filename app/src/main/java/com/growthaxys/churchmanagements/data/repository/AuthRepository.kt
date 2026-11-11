@@ -5,7 +5,6 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import javax.inject.Inject
 
 interface AuthRepository {
@@ -34,7 +33,7 @@ class SupabaseAuthRepository @Inject constructor(
 
     private suspend fun loadProfile(userId: String): UserProfile {
         val dto = supabase.from("profiles").select(Columns.ALL) {
-            filter { eq("id", userId) }
+            eq("id", userId)
         }.decodeSingle<com.growthaxys.churchmanagements.data.remote.ProfileDto>()
         return UserProfile(
             id = dto.id,
