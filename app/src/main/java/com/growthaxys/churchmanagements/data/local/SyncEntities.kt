@@ -1,6 +1,7 @@
 package com.growthaxys.churchmanagements.data.local
 
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "sync_metadata", primaryKeys = ["key", "accountScope"])
 data class SyncMetadataEntity(
