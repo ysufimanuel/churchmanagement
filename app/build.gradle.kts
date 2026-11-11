@@ -13,8 +13,18 @@ val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use(::load)
 }
+val supabaseDefaults = mapOf(
+    // Supabase anon/publishable key is designed for client-side use; database access remains protected by RLS.
+    "SUPABASE_URL" to "https://bpubxeohlsskvsuhsqcw.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY" to "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwdWJ4ZW9obHNza3ZzdWhzcWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MTExMDEsImV4cCI6MjEwODA4NzEwMX0.O5W83kQoRoe8LS30ZVSXa4MxqrLMTQbdwmIo5pNhsEw"
+)
 fun quotedBuildConfig(name: String): String {
-    val value = localProperties.getProperty(name, "")
+    val value = providers.gradleProperty(name).orNull
+        ?: System.getenv(name)
+        ?: localProperties.getProperty(name)
+        ?: supabaseDefaults[name]
+        ?: ""
+    require(value.isNotBlank()) { "$name must be configured before building the app." }
     val escaped = value
         .replace("\\", "\\\\")
         .replace("\"", "\\\"")
