@@ -7,8 +7,6 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
-import java.util.Properties
-
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use(::load)
