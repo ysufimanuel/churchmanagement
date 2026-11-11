@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,13 +28,14 @@ private val modules = listOf(
     ModuleItem("Kehadiran", "Check-in dan laporan", Icons.Outlined.HowToReg),
     ModuleItem("Donasi", "Donatur dan donasi", Icons.Outlined.VolunteerActivism),
     ModuleItem("Keuangan", "Transaksi dan persetujuan", Icons.Outlined.AccountBalanceWallet),
-    ModuleItem("Relawan", "Pelayanan dan penugasan", Icons.Outlined.Handshake),
+    ModuleItem("Relawan", "Pelayanan dan penugasan", Icons.Outlined.Work),
     ModuleItem("Komunikasi", "Pesan, pengumuman, broadcast", Icons.Outlined.Campaign),
     ModuleItem("Laporan", "Ringkasan dan ekspor", Icons.Outlined.Assessment),
     ModuleItem("Manajemen Pengguna", "Akun dan role", Icons.Outlined.ManageAccounts),
     ModuleItem("Web Manager", "Konten dan tampilan situs", Icons.Outlined.Web)
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(profile: UserProfile, onSignOut: () -> Unit) {
     Scaffold(
