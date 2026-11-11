@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -12,12 +14,11 @@ val localProperties = Properties().apply {
     if (file.exists()) file.inputStream().use(::load)
 }
 fun quotedBuildConfig(name: String): String =
-    "\"\u0024{name}\"".replace("\u0024{name}", localProperties.getProperty(name, ""))
+    "\"\u0024{localProperties.getProperty(name, "")}\""
 
 android {
     namespace = "com.growthaxys.churchmanagements"
     compileSdk = 35
-
     defaultConfig {
         applicationId = "com.growthaxys.churchmanagements"
         minSdk = 29
@@ -28,7 +29,6 @@ android {
         buildConfigField("String", "SUPABASE_URL", quotedBuildConfig("SUPABASE_URL"))
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quotedBuildConfig("SUPABASE_PUBLISHABLE_KEY"))
     }
-
     buildFeatures { compose = true; buildConfig = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -37,8 +37,6 @@ android {
     kotlinOptions { jvmTarget = "17" }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 }
-
-ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -67,7 +65,6 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
