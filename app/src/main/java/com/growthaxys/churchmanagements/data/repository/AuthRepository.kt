@@ -5,7 +5,7 @@ import com.growthaxys.churchmanagements.domain.model.AppRole
 import com.growthaxys.churchmanagements.domain.model.UserProfile
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import javax.inject.Inject
@@ -20,16 +20,16 @@ class SupabaseAuthRepository @Inject constructor(
     private val supabase: SupabaseClient
 ) : AuthRepository {
     override suspend fun restoreSession(): UserProfile? {
-        val user = supabase.gotrue.currentUserOrNull() ?: return null
+        val user = supabase.auth.currentUserOrNull() ?: return null
         return loadProfile(user.id)
     }
 
     override suspend fun signIn(email: String, password: String): UserProfile {
-        supabase.gotrue.signInWith(Email) {
+        supabase.auth.signInWith(Email) {
             this.email = email.trim()
             this.password = password
         }
-        val user = supabase.gotrue.currentUserOrNull()
+        val user = supabase.auth.currentUserOrNull()
             ?: error("Sesi login tidak ditemukan. Silakan coba lagi.")
         return loadProfile(user.id)
     }
@@ -52,6 +52,6 @@ class SupabaseAuthRepository @Inject constructor(
     }
 
     override suspend fun signOut() {
-        supabase.gotrue.signOut()
+        supabase.auth.signOut()
     }
 }
