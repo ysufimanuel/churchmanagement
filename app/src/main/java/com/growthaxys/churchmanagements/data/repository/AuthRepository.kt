@@ -4,8 +4,8 @@ import com.growthaxys.churchmanagements.data.remote.ProfileDto
 import com.growthaxys.churchmanagements.domain.model.AppRole
 import com.growthaxys.churchmanagements.domain.model.UserProfile
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import javax.inject.Inject
