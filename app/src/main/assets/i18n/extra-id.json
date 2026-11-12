@@ -1,0 +1,17 @@
+{
+ "expiry-date": "Tanggal Kedaluwarsa",
+ "important": "Penting",
+ "mark-all-read": "Tandai semua dibaca",
+ "no-notifications": "Belum ada notifikasi",
+ "no-results": "Tidak ada hasil",
+ "search-failed": "Pencarian gagal",
+ "search-hint": "Ketik minimal 2 karakter",
+ "searching": "Mencari...",
+ "view-only": "Hanya lihat",
+ "role": "Peran",
+ "saved-ok": "Berhasil disimpan",
+ "sent": "Pesan terkirim",
+ "broadcast-sent": "Broadcast terkirim",
+ "draft-saved": "Draf disimpan",
+ "checkin-ok": "Check-in berhasil"
+}

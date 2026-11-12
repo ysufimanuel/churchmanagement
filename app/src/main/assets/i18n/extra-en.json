@@ -1,0 +1,17 @@
+{
+ "expiry-date": "Expiry Date",
+ "important": "Important",
+ "mark-all-read": "Mark all as read",
+ "no-notifications": "No notifications yet",
+ "no-results": "No results",
+ "search-failed": "Search failed",
+ "search-hint": "Type at least 2 characters",
+ "searching": "Searching...",
+ "view-only": "View only",
+ "role": "Role",
+ "saved-ok": "Saved successfully",
+ "sent": "Message sent",
+ "broadcast-sent": "Broadcast sent",
+ "draft-saved": "Draft saved",
+ "checkin-ok": "Check-in successful"
+}

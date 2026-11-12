@@ -31,6 +31,11 @@ fun quotedBuildConfig(name: String): String {
     return "\"$escaped\""
 }
 
+fun quotedOptional(name: String, default: String): String {
+    val value = providers.gradleProperty(name).orNull ?: System.getenv(name) ?: localProperties.getProperty(name) ?: default
+    return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+}
+
 android {
     namespace = "com.growthaxys.churchmanagements"
     compileSdk = 35
@@ -43,6 +48,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "SUPABASE_URL", quotedBuildConfig("SUPABASE_URL"))
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quotedBuildConfig("SUPABASE_PUBLISHABLE_KEY"))
+        // Alias used by the repository layer (same anon/publishable key; RLS is the authority).
+        buildConfigField("String", "SUPABASE_ANON_KEY", quotedBuildConfig("SUPABASE_PUBLISHABLE_KEY"))
+        buildConfigField("String", "WEB_BASE_URL", quotedOptional("WEB_BASE_URL", "https://getchurchly.vercel.app"))
+        // Optional trusted endpoint that resolves username -> email (service role stays server-side).
+        buildConfigField("String", "LOGIN_RESOLVER_URL", quotedOptional("LOGIN_RESOLVER_URL", ""))
     }
     buildFeatures { compose = true; buildConfig = true }
     compileOptions {
@@ -58,6 +68,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
