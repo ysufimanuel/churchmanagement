@@ -15,7 +15,7 @@ import javax.inject.Singleton
  * (id = auth.uid() AND role unchanged), so no elevated key is needed.
  */
 @Singleton
-class ProfileRepository @Inject constructor(private val client: SupabaseClient, private val auth: AuthRepository) : BaseRepo(client, auth) {
+class ProfileRepository @Inject constructor(client: SupabaseClient, private val auth: AuthRepository) : BaseRepo(client, auth) {
     private val bucket get() = client.storage.from("avatars")
 
     suspend fun update(nama: String, username: String): ActionResult {

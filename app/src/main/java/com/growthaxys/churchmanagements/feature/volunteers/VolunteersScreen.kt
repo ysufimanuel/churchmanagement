@@ -90,7 +90,7 @@ fun VolunteersScreen(role: Role, padding: PaddingValues, initialQuery: String, v
                                 t("service-area") to { FieldText(t(v.area)) },
                                 t("status") to { AppBadge(if (v.status == "aktif") t("active") else t("inactive"), if (v.status == "aktif") BadgeVariant.Success else BadgeVariant.Secondary) },
                                 t("email") to { FieldText(v.externalEmail) }, t("phone") to { FieldText(v.externalTelepon) },
-                                t("available-schedule") to { FieldText(v.jadwal.joinToString(", ") { t(scheduleKey(it)) }) },
+                                s.t("available-schedule") to { FieldText(v.jadwal.joinToString(", ") { s.t(scheduleKey(it)) }) },
                             ),
                             leading = { InitialsAvatar(volName(v)) },
                             actions = {

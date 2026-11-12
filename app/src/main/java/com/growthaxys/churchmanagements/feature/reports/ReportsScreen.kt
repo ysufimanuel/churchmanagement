@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.growthaxys.churchmanagements.core.LocalStrings
 import com.growthaxys.churchmanagements.core.t
 import com.growthaxys.churchmanagements.data.model.Attendance
 import com.growthaxys.churchmanagements.data.model.Donation
@@ -41,21 +42,22 @@ class ReportsViewModel @Inject constructor(private val people: PeopleRepository,
 @Composable
 fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()) {
     LoadGate(vm) { d ->
+        val s = LocalStrings.current
         ModulePage(padding) {
             item { PageHeader(t("reports"), t("reports-system")) }
             item {
                 ReportCard(t("members-report"), t("members-stats"), "members-report") {
-                    d.members.map { mapOf(t("exp-name") to it.nama, t("email") to it.email, t("phone") to it.telepon, t("gender") to it.jk, t("status") to it.status) }
+                    d.members.map { mapOf(s.t("exp-name") to it.nama, s.t("email") to it.email, s.t("phone") to it.telepon, s.t("gender") to it.jk, s.t("status") to it.status) }
                 }
             }
             item {
                 ReportCard(t("attendance-report"), t("attendance-data-report"), "attendance-report") {
-                    d.attendance.map { mapOf(t("date") to it.tanggal, t("event") to d.eventNames[it.eventId], t("name") to d.memberNames[it.memberId], t("checkin-time") to it.waktu, t("status") to it.status) }
+                    d.attendance.map { mapOf(s.t("date") to it.tanggal, s.t("event") to d.eventNames[it.eventId], s.t("name") to d.memberNames[it.memberId], s.t("checkin-time") to it.waktu, s.t("status") to it.status) }
                 }
             }
             item {
                 ReportCard(t("donations-report"), t("manage-donations"), "donations-report") {
-                    d.donations.map { mapOf(t("exp-date") to it.tanggal, t("donor") to it.donors?.nama, t("exp-type") to (it.customType ?: it.tipe), t("exp-amount") to it.jumlah, t("exp-desc") to it.keterangan) }
+                    d.donations.map { mapOf(s.t("exp-date") to it.tanggal, s.t("donor") to it.donors?.nama, s.t("exp-type") to (it.customType ?: it.tipe), s.t("exp-amount") to it.jumlah, s.t("exp-desc") to it.keterangan) }
                 }
             }
         }
@@ -63,7 +65,7 @@ fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()
 }
 
 @Composable
-private fun ReportCard(title: String, subtitle: String, file: String, rows: () -> Exporter.Rows) {
+private fun ReportCard(title: String, subtitle: String, file: String, rows: () -> ExportRows) {
     AppCard {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {

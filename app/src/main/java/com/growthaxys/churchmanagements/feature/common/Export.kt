@@ -10,22 +10,23 @@ import androidx.core.content.FileProvider
 import java.io.File
 
 /** Port of web `src/lib/export.ts` (CSV / TXT / XLS(SpreadsheetML) / print-PDF). Files are shared via the Android Sharesheet. */
+typealias ExportRows = List<Map<String, Any?>>
+
 object Exporter {
     enum class Format { CSV, XLS, TXT, PDF }
-    typealias Rows = List<Map<String, Any?>>
 
     private fun esc(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    fun csv(rows: Rows): String {
+    fun csv(rows: ExportRows): String {
         val headers = rows.first().keys.toList()
         return (listOf(headers.joinToString(",")) + rows.map { r ->
             headers.joinToString(",") { h -> "\"${(r[h] ?: "").toString().replace("\"", "\"\"")}\"" }
         }).joinToString("\n")
     }
 
-    fun txt(rows: Rows): String = rows.joinToString("\n") { r -> r.entries.joinToString(" | ") { "${it.key}: ${it.value ?: "-"}" } }
+    fun txt(rows: ExportRows): String = rows.joinToString("\n") { r -> r.entries.joinToString(" | ") { "${it.key}: ${it.value ?: "-"}" } }
 
-    fun xls(rows: Rows): String {
+    fun xls(rows: ExportRows): String {
         val headers = rows.first().keys.toList()
         fun cell(v: String) = "<Cell><Data ss:Type=\"String\">${esc(v)}</Data></Cell>"
         return "<?xml version=\"1.0\"?><Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\">" +
@@ -34,7 +35,7 @@ object Exporter {
             "</Table></Worksheet></Workbook>"
     }
 
-    fun export(context: Context, format: Format, rows: Rows, filename: String, title: String) {
+    fun export(context: Context, format: Format, rows: ExportRows, filename: String, title: String) {
         if (rows.isEmpty()) return
         when (format) {
             Format.CSV -> share(context, csv(rows), "$filename.csv", "text/csv")
@@ -55,7 +56,7 @@ object Exporter {
     }
 
     /** Web uses window.print() on a generated HTML table; Android uses PrintManager (also offers "Save as PDF"). */
-    private fun print(context: Context, title: String, rows: Rows) {
+    private fun print(context: Context, title: String, rows: ExportRows) {
         val headers = rows.first().keys.toList()
         val html = "<html><head><meta charset=\"utf-8\"><title>${esc(title)}</title><style>body{font-family:sans-serif;padding:24px}" +
             "table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left;font-size:12px}th{background:#f3f4f6}</style></head><body>" +

@@ -66,7 +66,7 @@ fun MembersScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
                     AppSelect(status, listOf(Option("", t("all-status")), Option("aktif", t("active")), Option("tidak-aktif", t("inactive"))), { status = it })
                     AppSelect(gender, listOf(Option("", t("all-gender")), Option("Laki-laki", t("male")), Option("Perempuan", t("female"))), { gender = it })
                     ExportButton(t("members-report"), "members", {
-                        filtered.map { mapOf(t("exp-name") to it.nama, t("email") to it.email, t("phone") to it.telepon, t("exp-gender") to it.jk, t("status") to it.status, t("group") to groupName(it.groupId)) }
+                        filtered.map { mapOf(s.t("exp-name") to it.nama, s.t("email") to it.email, s.t("phone") to it.telepon, s.t("exp-gender") to it.jk, s.t("status") to it.status, s.t("group") to groupName(it.groupId)) }
                     })
                     if (Rbac.canAdd(role)) AppButton(t("add-member"), { editing = MemberInput(nama = "", joinDate = Format.today()) }, icon = Icons.Outlined.Add)
                 }

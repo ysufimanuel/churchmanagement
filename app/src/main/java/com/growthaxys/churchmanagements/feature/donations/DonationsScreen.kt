@@ -71,7 +71,7 @@ fun DonationsScreen(role: Role, padding: PaddingValues, initialQuery: String, vm
                     SearchField(search, { search = it }, t("search-donations"))
                     AppSelect(type, listOf(Option("", t("all-types"))) + TYPES.map { Option(it, t(it)) }, { type = it })
                     ExportButton(t("donations-report"), "donations", {
-                        filtered.map { mapOf(t("exp-date") to it.tanggal, t("donor") to donorName(it), t("exp-type") to (it.customType ?: it.tipe), t("exp-amount") to it.jumlah, t("exp-desc") to it.keterangan) }
+                        filtered.map { mapOf(s.t("exp-date") to it.tanggal, s.t("donor") to donorName(it), s.t("exp-type") to (it.customType ?: it.tipe), s.t("exp-amount") to it.jumlah, s.t("exp-desc") to it.keterangan) }
                     })
                     if (Rbac.canAdd(role)) AppButton(t("add-donation"), { editing = DonationInput(null, null, "persembahan", "", 0.0, Format.today(), "") }, icon = Icons.Outlined.Add)
                 }

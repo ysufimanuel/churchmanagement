@@ -186,7 +186,7 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
                 "laporan" -> {
                     item {
                         ExportButton(t("finance-report"), "finance-report", {
-                            approved.map { mapOf(t("date") to it.tanggal, t("type") to t(if (it.tipe == "pemasukan") "income" else "expense"), t("category") to catName(it.kategoriId), t("amount") to it.jumlah, t("description") to it.keterangan) }
+                            approved.map { mapOf(s.t("date") to it.tanggal, s.t("type") to s.t(if (it.tipe == "pemasukan") "income" else "expense"), s.t("category") to catName(it.kategoriId), s.t("amount") to it.jumlah, s.t("description") to it.keterangan) }
                         })
                     }
                     item { StatCard(t("current-balance"), Format.rupiah(balance)) }
