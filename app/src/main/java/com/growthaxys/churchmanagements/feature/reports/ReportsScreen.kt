@@ -87,6 +87,10 @@ fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()
     LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Cards) { d ->
         val s = LocalStrings.current
         var preview by remember { mutableStateOf<Triple<String, String, ExportRows>?>(null) }
+        val membersTitle = t("members-report")
+        val attendanceTitle = t("attendance-report")
+        val donationsTitle = t("donations-report")
+        val systemTitle = t("system-stats")
 
         fun memberRows(): ExportRows = d.members.map {
             mapOf(
@@ -130,20 +134,20 @@ fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ReportTile(t("members-report"), t("members-stats"), Icons.Outlined.People, Modifier.weight(1f)) {
-                        preview = Triple(t("members-report"), "members-report", memberRows())
+                        preview = Triple(membersTitle, "members-report", memberRows())
                     }
                     ReportTile(t("attendance-report"), t("attendance-data-report"), Icons.Outlined.Checklist, Modifier.weight(1f)) {
-                        preview = Triple(t("attendance-report"), "attendance-report", attendanceRows())
+                        preview = Triple(attendanceTitle, "attendance-report", attendanceRows())
                     }
                 }
             }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ReportTile(t("donations-report"), t("donations-summary"), Icons.Outlined.VolunteerActivism, Modifier.weight(1f)) {
-                        preview = Triple(t("donations-report"), "donations-report", donationRows())
+                        preview = Triple(donationsTitle, "donations-report", donationRows())
                     }
                     ReportTile(t("system-stats"), t("system-overview"), Icons.Outlined.CalendarMonth, Modifier.weight(1f)) {
-                        preview = Triple(t("system-stats"), "system-stats", systemRows())
+                        preview = Triple(systemTitle, "system-stats", systemRows())
                     }
                 }
             }
