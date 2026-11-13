@@ -570,6 +570,7 @@ private fun SectionEditor(section: WmSection?, initialType: String, initialPage:
         return JsonObject(out)
     }
 
+    val pageRequired = tr("Halaman wajib diisi")
     AppDialog(if (section == null) tr("Tambah Bagian") else tr("Ubah Bagian"), onClose, wide = true) {
         Text(tr(metaOf(type).hint), fontSize = 12.sp, color = Tokens.MutedForeground)
         LabeledField(tr("Tipe")) { AppSelect(type, SECTION_ORDER.map { Option(it, tr(metaOf(it).label)) }, { type = it }) }
@@ -663,7 +664,7 @@ private fun SectionEditor(section: WmSection?, initialType: String, initialPage:
         error?.let { Text(it, color = Tokens.Red400, fontSize = 12.sp) }
         DialogActions(onClose, {
             val pg = page.trim().lowercase()
-            if (pg.isBlank()) { error = tr("Halaman wajib diisi"); return@DialogActions }
+            if (pg.isBlank()) { error = pageRequired; return@DialogActions }
             vm.saveSection(SectionDraft(section?.id, pg, type, order.toIntOrNull() ?: 0, build(), enabled)) { onClose() }
         })
     }
