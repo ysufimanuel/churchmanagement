@@ -5,6 +5,8 @@ package com.growthaxys.churchmanagements.feature.shell
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +36,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,6 +68,9 @@ import com.growthaxys.churchmanagements.designsystem.BtnVariant
 import com.growthaxys.churchmanagements.designsystem.Glass
 import com.growthaxys.churchmanagements.designsystem.InitialsAvatar
 import com.growthaxys.churchmanagements.designsystem.Tokens
+import com.growthaxys.churchmanagements.designsystem.EaseOutStrong
+import com.growthaxys.churchmanagements.designsystem.iconFx
+import com.growthaxys.churchmanagements.designsystem.pressScale
 import com.growthaxys.churchmanagements.feature.attendance.AttendanceScreen
 import com.growthaxys.churchmanagements.feature.communication.CommunicationScreen
 import com.growthaxys.churchmanagements.feature.dashboard.DashboardScreen
@@ -171,12 +179,33 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
 
 @Composable
 private fun NavItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val activeProgress by animateFloatAsState(
+        targetValue = if (active) 1f else 0f,
+        animationSpec = tween(260, easing = EaseOutStrong),
+        label = "nav-active",
+    )
+    val iconScale by animateFloatAsState(
+        targetValue = if (active) 1.08f else 1f,
+        animationSpec = tween(320, easing = EaseOutStrong),
+        label = "nav-icon",
+    )
     Column(
-        modifier.heightIn(min = 52.dp).background(if (active) Tokens.Primary.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick).padding(vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+        modifier.heightIn(min = 52.dp)
+            .pressScale(interaction, pressedScale = 0.985f)
+            .background(Tokens.Primary.copy(alpha = 0.15f * activeProgress), RoundedCornerShape(18.dp))
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+            .padding(vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Icon(icon, label, Modifier.size(22.dp), tint = if (active) Tokens.Primary else Tokens.MutedForeground)
+        Icon(
+            icon,
+            label,
+            Modifier.size(22.dp).graphicsLayer { scaleX = iconScale; scaleY = iconScale }.iconFx(icon, pressed),
+            tint = if (active) Tokens.Primary else Tokens.MutedForeground,
+        )
         Text(label, fontSize = 10.sp, fontWeight = FontWeight.Medium, color = if (active) Tokens.Primary else Tokens.MutedForeground, maxLines = 1)
     }
 }
