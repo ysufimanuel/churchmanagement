@@ -106,7 +106,7 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
                     popExitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) },
                 ) {
                     val pad = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 112.dp)
-                    composable("dashboard") { DashboardScreen(role, pad, onOpen = { go(it) }) }
+                    composable("dashboard") { DashboardScreen(role, profile.nama, pad, onOpen = { go(it) }) }
                     for (r in listOf("members", "families", "groups", "events", "attendance", "donations", "finance", "volunteers", "communication", "reports", "users", "web-manager")) {
                         composable("$r?q={q}", arguments = listOf(navArgument("q") { type = NavType.StringType; nullable = true; defaultValue = null })) { e ->
                             val q = e.arguments?.getString("q").orEmpty()
