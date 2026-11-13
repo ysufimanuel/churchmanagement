@@ -54,7 +54,7 @@ fun MembersScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
         val groupName = { id: Long? -> data.groups.firstOrNull { it.id == id }?.nama ?: "-" }
         val q = search.trim().lowercase()
         val filtered = data.members.filter { m ->
-            (q.isEmpty() || listOf(m.nama, m.email, m.telepon, m.alamat, m.kota).any { (it ?: "").lowercase().contains(q) }) &&
+            (q.isEmpty() || listOf(m.nama, m.email, m.telepon, m.alamat, m.kota, m.kodepos, m.status, m.jk).any { (it ?: "").lowercase().contains(q) }) &&
                 (status.isEmpty() || m.status == status) && (gender.isEmpty() || m.jk == gender)
         }
 

@@ -49,27 +49,30 @@ fun DonationsScreen(role: Role, padding: PaddingValues, initialQuery: String, vm
         val s = LocalStrings.current
         var search by remember { mutableStateOf(initialQuery) }
         var type by remember { mutableStateOf("") }
+        var month by remember { mutableStateOf("") }
         var editing by remember { mutableStateOf<DonationInput?>(null) }
         val donorName = { d: Donation -> d.donors?.nama ?: data.donors.firstOrNull { it.id == d.donorId }?.nama ?: "-" }
         val q = search.trim().lowercase()
         val filtered = data.donations.filter { d ->
-            (q.isEmpty() || listOf(donorName(d), d.keterangan, d.tipe, d.customType).any { (it ?: "").lowercase().contains(q) }) && (type.isEmpty() || d.tipe == type)
+            (q.isEmpty() || listOf(donorName(d), d.keterangan, d.tipe, d.customType).any { (it ?: "").lowercase().contains(q) }) &&
+                (type.isEmpty() || d.tipe == type) &&
+                (month.isEmpty() || d.tanggal.startsWith(month))
         }
-        val total = data.donations.sumOf { it.jumlah }
+        val total = filtered.sumOf { it.jumlah }
+        val uniqueDonors = data.donations.mapNotNull { it.donorId }.distinct().size
+        val average = if (filtered.isEmpty()) 0.0 else total / filtered.size
+        val months = data.donations.map { it.tanggal.take(7) }.distinct().sortedDescending()
 
         ModulePage(padding) {
             item { PageHeader(t("donations"), t("manage-donations")) }
-            item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StatCard(t("total-donations"), Format.rupiahCompact(total, s.lang), Modifier.weight(1f), Tokens.Emerald400)
-                    StatCard(t("total-donors"), data.donors.size.toString(), Modifier.weight(1f))
-                }
-            }
-            item { StatCard(t("average-donation"), Format.rupiah(if (data.donations.isEmpty()) 0.0 else total / data.donations.size)) }
+            item { StatCard(t("total-donations"), Format.rupiah(total), valueColor = Tokens.Emerald400) }
+            item { StatCard(t("total-donors"), uniqueDonors.toString()) }
+            item { StatCard(t("average-donation"), Format.rupiah(average)) }
             item {
                 FilterRow {
                     SearchField(search, { search = it }, t("search-donations"))
                     AppSelect(type, listOf(Option("", t("all-types"))) + TYPES.map { Option(it, t(it)) }, { type = it })
+                    AppSelect(month, listOf(Option("", t("select"))) + months.map { Option(it, Format.monthShort(it, s.lang)) }, { month = it }, placeholder = t("select"))
                     ExportButton(t("donations-report"), "donations", {
                         filtered.map { mapOf(s.t("exp-date") to it.tanggal, s.t("donor") to donorName(it), s.t("exp-type") to (it.customType ?: it.tipe), s.t("exp-amount") to it.jumlah, s.t("exp-desc") to it.keterangan) }
                     })
@@ -78,12 +81,12 @@ fun DonationsScreen(role: Role, padding: PaddingValues, initialQuery: String, vm
             }
             items(filtered, key = { it.id }) { d ->
                 DataRowCard(
-                    donorName(d),
+                    Format.date(d.tanggal, s.lang),
                     listOf(
-                        t("date") to { FieldText(Format.date(d.tanggal, s.lang)) },
+                        t("donor") to { FieldText(donorName(d)) },
                         t("type") to { AppBadge(d.customType ?: t(d.tipe), BadgeVariant.Default) },
-                        t("amount") to { FieldText(Format.rupiah(d.jumlah), Tokens.Emerald400) },
                         t("description") to { FieldText(d.keterangan) },
+                        t("amount") to { FieldText(Format.rupiah(d.jumlah), Tokens.Emerald400) },
                     ),
                     actions = {
                         RowActions(Rbac.canEdit(role), Rbac.canDelete(role),
