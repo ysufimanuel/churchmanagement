@@ -87,6 +87,7 @@ private val ColorScheme = darkColorScheme(
 )
 
 /** Web `default-web.css`: "Plus Jakarta Sans" 400–800 (variable font bundled in res/font). */
+@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
 val PlusJakartaSans = FontFamily(
     listOf(400, 500, 600, 700, 800).map { w ->
         Font(R.font.plus_jakarta_sans, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))

@@ -44,7 +44,7 @@ fun Skeleton(modifier: Modifier = Modifier, shape: androidx.compose.ui.graphics.
     }
 }
 
-@Composable private fun SkToolbar(vararg buttons: Dp) {
+@Composable private fun SkToolbar(buttons: List<Dp>) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Skeleton(Modifier.weight(1f).height(40.dp), Tokens.ControlShape)
         buttons.forEach { Skeleton(Modifier.width(it).height(40.dp), Tokens.ControlShape) }
@@ -109,13 +109,13 @@ fun PageSkeleton(kind: SkeletonKind, padding: PaddingValues) {
                 }
                 SkPanel(150.dp); SkPanel(150.dp); SkPanel(200.dp)
             }
-            SkeletonKind.Table -> { SkToolbar(88.dp, 112.dp); repeat(6) { SkTableCard() } }
-            SkeletonKind.Cards -> { SkToolbar(112.dp); repeat(4) { SkEntityCard() } }
+            SkeletonKind.Table -> { SkToolbar(listOf(88.dp, 112.dp)); repeat(6) { SkTableCard() } }
+            SkeletonKind.Cards -> { SkToolbar(listOf(112.dp)); repeat(4) { SkEntityCard() } }
             SkeletonKind.Stats -> {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) { SkStat(Modifier.weight(1f)); SkStat(Modifier.weight(1f)) }
-                SkToolbar(88.dp, 112.dp); repeat(4) { SkTableCard() }
+                SkToolbar(listOf(88.dp, 112.dp)); repeat(4) { SkTableCard() }
             }
-            SkeletonKind.Tabs -> { SkTabs(3); SkToolbar(112.dp); SkPanel(220.dp); repeat(2) { SkTableCard() } }
+            SkeletonKind.Tabs -> { SkTabs(3); SkToolbar(listOf(112.dp)); SkPanel(220.dp); repeat(2) { SkTableCard() } }
         }
     }
 }
