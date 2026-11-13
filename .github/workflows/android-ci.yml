@@ -1,9 +1,9 @@
 name: Android CI
 on:
   push:
-    branches: [main, android-native, integrate-experiments]
+    branches: [main, android-native, integrate-experiments, experiments]
   pull_request:
-    branches: [main, android-native]
+    branches: [main, android-native, experiments]
   workflow_dispatch:
 
 jobs:
