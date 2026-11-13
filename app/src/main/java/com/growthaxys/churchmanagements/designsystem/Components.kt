@@ -11,12 +11,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -32,6 +34,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,6 +67,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
@@ -79,6 +83,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -455,24 +460,53 @@ fun AppSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
 /* ---------- Tabs (glass-subtle container, active = solid primary pill) ---------- */
 data class TabItem(val id: String, val label: String)
 
+/** Web Tabs parity: shared glass rail, sliding active indicator and directional-feeling selection. */
 @Composable
 fun AppTabs(tabs: List<TabItem>, active: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    Row(
-        modifier.fillMaxWidth().clip(Tokens.ControlShape).background(Color(0x0AFFFFFF))
+    val activeIndex = tabs.indexOfFirst { it.id == active }.coerceAtLeast(0)
+    BoxWithConstraints(
+        modifier.fillMaxWidth()
+            .clip(Tokens.ControlShape)
+            .background(Color(0x0AFFFFFF))
             .border(1.dp, Tokens.BorderSubtle, Tokens.ControlShape)
-            .horizontalScroll(rememberScrollState()).padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(4.dp),
     ) {
-        tabs.forEach { tab ->
-            val on = tab.id == active
-            Text(
-                tab.label, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1,
-                color = if (on) Tokens.OnPrimary else Tokens.MutedForeground,
-                modifier = Modifier.clip(Tokens.ChipShape)
-                    .background(if (on) Tokens.Primary else Color.Transparent)
-                    .clickable { onChange(tab.id) }
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
+        val slotWidth = if (tabs.isEmpty()) 0.dp else maxWidth / tabs.size
+        val indicatorX by animateDpAsState(
+            targetValue = slotWidth * activeIndex,
+            animationSpec = tween(400, easing = EaseOutStrong),
+            label = "tabs-indicator",
+        )
+        if (tabs.isNotEmpty()) {
+            Box(
+                Modifier.offset(x = indicatorX)
+                    .width(slotWidth)
+                    .heightIn(min = 40.dp)
+                    .clip(Tokens.ChipShape)
+                    .background(Tokens.Primary),
             )
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+            tabs.forEach { tab ->
+                val selected = tab.id == active
+                Box(
+                    Modifier.weight(1f)
+                        .heightIn(min = 40.dp)
+                        .clip(Tokens.ChipShape)
+                        .clickable { onChange(tab.id) }
+                        .padding(horizontal = 4.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        tab.label,
+                        fontSize = 13.sp,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                        color = if (selected) Tokens.OnPrimary else Tokens.MutedForeground,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }

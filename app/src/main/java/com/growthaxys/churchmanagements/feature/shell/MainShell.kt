@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -37,6 +40,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -165,14 +169,36 @@ private fun TopBar(profile: Profile, onProfile: () -> Unit) {
 
 @Composable
 private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSearch: () -> Unit, onMenu: () -> Unit, modifier: Modifier = Modifier) {
+    val hasWeb = Rbac.canUseWebManager(role)
+    val itemCount = if (hasWeb) 5 else 4
+    val menuActive = current != "dashboard" && current != "finance" && current != "web-manager"
+    val activeIndex = when (current) {
+        "dashboard" -> 0
+        "finance" -> 1
+        "web-manager" -> if (hasWeb) 3 else itemCount - 1
+        else -> itemCount - 1
+    }
     Glass(modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(), strong = true, shape = RoundedCornerShape(24.dp)) {
-        Row(Modifier.fillMaxWidth().padding(6.dp), horizontalArrangement = Arrangement.SpaceAround) {
-            NavItem(Destinations.byRoute("dashboard")!!.icon, t("dashboard"), current == "dashboard", Modifier.weight(1f)) { onGo("dashboard") }
-            NavItem(Destinations.byRoute("finance")!!.icon, t("finance"), current == "finance", Modifier.weight(1f)) { onGo("finance") }
-            NavItem(Icons.Outlined.Search, t("nav-search"), false, Modifier.weight(1f), onSearch)
-            if (Rbac.canUseWebManager(role)) NavItem(Icons.Outlined.Language, t("web-manager"), current == "web-manager", Modifier.weight(1f)) { onGo("web-manager") }
-            val inMenu = current != "dashboard" && current != "finance" && current != "web-manager"
-            NavItem(Icons.Outlined.Menu, t("nav-menu"), inMenu, Modifier.weight(1f), onMenu)
+        BoxWithConstraints(Modifier.fillMaxWidth().padding(6.dp)) {
+            val slotWidth = maxWidth / itemCount
+            val indicatorX by animateDpAsState(
+                targetValue = slotWidth * activeIndex,
+                animationSpec = tween(420, easing = EaseOutStrong),
+                label = "dock-indicator",
+            )
+            Box(
+                Modifier.offset(x = indicatorX + 4.dp, y = 0.dp)
+                    .width(slotWidth - 8.dp)
+                    .height(52.dp)
+                    .background(Tokens.Primary.copy(alpha = 0.15f), RoundedCornerShape(18.dp)),
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                NavItem(Destinations.byRoute("dashboard")!!.icon, t("dashboard"), current == "dashboard", Modifier.weight(1f)) { onGo("dashboard") }
+                NavItem(Destinations.byRoute("finance")!!.icon, t("finance"), current == "finance", Modifier.weight(1f)) { onGo("finance") }
+                NavItem(Icons.Outlined.Search, t("nav-search"), false, Modifier.weight(1f), onSearch)
+                if (hasWeb) NavItem(Icons.Outlined.Language, t("web-manager"), current == "web-manager", Modifier.weight(1f)) { onGo("web-manager") }
+                NavItem(Icons.Outlined.Menu, t("nav-menu"), menuActive, Modifier.weight(1f), onMenu)
+            }
         }
     }
 }
@@ -194,7 +220,6 @@ private fun NavItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label
     Column(
         modifier.heightIn(min = 52.dp)
             .pressScale(interaction, pressedScale = 0.985f)
-            .background(Tokens.Primary.copy(alpha = 0.15f * activeProgress), RoundedCornerShape(18.dp))
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
             .padding(vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
