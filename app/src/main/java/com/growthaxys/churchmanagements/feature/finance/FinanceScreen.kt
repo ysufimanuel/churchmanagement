@@ -63,6 +63,7 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
         var tab by remember { mutableStateOf("dashboard") }
         var search by remember { mutableStateOf(initialQuery) }
         var catFilter by remember { mutableStateOf("") }
+        var monthFilter by remember { mutableStateOf("") }
         var trx by remember { mutableStateOf<TrxInput?>(null) }
         var cat by remember { mutableStateOf<FinanceCategory?>(null) }
         var catNew by remember { mutableStateOf(false) }
@@ -75,8 +76,10 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
         val balance = data.saldoAwal + income - expense
         val pending = data.transactions.filter { it.status == "pending" }
         val q = search.trim().lowercase()
+        val availableMonths = data.transactions.map { it.tanggal.take(7) }.distinct().sortedDescending()
         fun listFor(tipe: String) = data.transactions.filter { x ->
             x.tipe == tipe && (catFilter.isEmpty() || x.kategoriId?.toString() == catFilter) &&
+                (monthFilter.isEmpty() || x.tanggal.startsWith(monthFilter)) &&
                 (q.isEmpty() || (x.keterangan ?: "").lowercase().contains(q) || catName(x.kategoriId).lowercase().contains(q))
         }
         val tabs = buildList {
@@ -144,17 +147,21 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
                         FilterRow {
                             SearchField(search, { search = it }, t("search"))
                             AppSelect(catFilter, listOf(Option("", t("all-categories"))) + data.categories.filter { it.tipe == tipe }.map { Option(it.id.toString(), it.nama) }, { catFilter = it })
+                            AppSelect(monthFilter, listOf(Option("", t("select"))) + availableMonths.map { Option(it, Format.monthShort(it, s.lang)) }, { monthFilter = it }, placeholder = t("select"))
+                            ExportButton(t("finance-report"), "finance-$tipe", {
+                                rows.map { mapOf(s.t("date") to it.tanggal, s.t("category") to catName(it.kategoriId), s.t("description") to it.keterangan, s.t("amount") to it.jumlah, s.t("status") to s.t(statusKey(it.status))) }
+                            })
                             if (Rbac.canAdd(role)) AppButton(t(if (tipe == "pemasukan") "add-income" else "add-expense"), { trx = emptyTrx(tipe) }, icon = Icons.Outlined.Add)
                         }
                     }
                     items(rows, key = { it.id }) { x ->
                         DataRowCard(
-                            catName(x.kategoriId),
+                            Format.date(x.tanggal, s.lang),
                             listOf(
-                                t("date") to { FieldText(Format.date(x.tanggal, s.lang)) },
+                                t("category") to { FieldText(catName(x.kategoriId)) },
+                                t("description") to { FieldText(x.keterangan) },
                                 t("amount") to { FieldText(Format.rupiah(x.jumlah), if (tipe == "pemasukan") Tokens.Emerald400 else Tokens.Red400) },
                                 t("status") to { AppBadge(t(statusKey(x.status)), statusVariant(x.status)) },
-                                t("description") to { FieldText(x.keterangan) },
                             ),
                             actions = {
                                 // Approved rows are immutable for non-superadmin (RLS enforces too).
