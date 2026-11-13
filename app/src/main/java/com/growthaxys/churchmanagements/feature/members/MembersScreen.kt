@@ -43,7 +43,7 @@ class MembersViewModel @Inject constructor(private val repo: PeopleRepository) :
 
 @Composable
 fun MembersScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: MembersViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Table) { data ->
         val busy by vm.busy.collectAsStateWithLifecycle()
         val s = LocalStrings.current
         var search by remember { mutableStateOf(initialQuery) }

@@ -44,7 +44,7 @@ class AttendanceViewModel @Inject constructor(private val repo: EventsRepository
 
 @Composable
 fun AttendanceScreen(role: Role, padding: PaddingValues, vm: AttendanceViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Tabs) { data ->
         val s = LocalStrings.current
         var tab by remember { mutableStateOf("checkin") }
         var eventId by remember { mutableStateOf("") }

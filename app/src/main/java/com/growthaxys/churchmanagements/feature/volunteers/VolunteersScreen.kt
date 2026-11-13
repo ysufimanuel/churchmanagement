@@ -56,7 +56,7 @@ class VolunteersViewModel @Inject constructor(private val repo: VolunteerReposit
 
 @Composable
 fun VolunteersScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: VolunteersViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Tabs) { data ->
         val busy by vm.busy.collectAsStateWithLifecycle()
         val s = LocalStrings.current
         var tab by remember { mutableStateOf("list") }

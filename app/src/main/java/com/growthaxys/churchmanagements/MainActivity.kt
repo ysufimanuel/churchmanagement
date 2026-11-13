@@ -25,6 +25,8 @@ import com.growthaxys.churchmanagements.feature.common.LocalToaster
 import com.growthaxys.churchmanagements.feature.common.ToastHost
 import com.growthaxys.churchmanagements.feature.common.ToastMsg
 import com.growthaxys.churchmanagements.feature.shell.AppViewModel
+import com.growthaxys.churchmanagements.feature.splash.SplashScreen
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.growthaxys.churchmanagements.feature.shell.MainShell
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -47,13 +49,18 @@ private fun AppRoot(app: AppViewModel = hiltViewModel()) {
 
     CompositionLocalProvider(LocalStrings provides strings, LocalToaster provides { toast = it }) {
         ChurchTheme {
-            AppBackground {
-                when (val s = session) {
-                    is SessionState.Loading -> LoadingBox()
-                    is SessionState.SignedOut -> LoginScreen(lang = lang, onLang = app::setLang)
-                    is SessionState.SignedIn -> MainShell(profile = s.profile, lang = lang, onLang = app::setLang, onLogout = app::logout)
+            // Splash video first (web APK parity); the session resolves underneath, then the app fades in.
+            var splashDone by rememberSaveable { mutableStateOf(false) }
+            androidx.compose.animation.Crossfade(splashDone, animationSpec = androidx.compose.animation.core.tween(450), label = "splash") { done ->
+                if (!done) SplashScreen { splashDone = true }
+                else AppBackground {
+                    when (val s = session) {
+                        is SessionState.Loading -> LoadingBox()
+                        is SessionState.SignedOut -> LoginScreen(lang = lang, onLang = app::setLang)
+                        is SessionState.SignedIn -> MainShell(profile = s.profile, lang = lang, onLang = app::setLang, onLogout = app::logout)
+                    }
+                    ToastHost(toast) { toast = null }
                 }
-                ToastHost(toast) { toast = null }
             }
         }
     }

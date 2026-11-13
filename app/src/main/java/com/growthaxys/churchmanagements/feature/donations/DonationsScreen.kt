@@ -44,7 +44,7 @@ class DonationsViewModel @Inject constructor(private val repo: GivingRepository)
 
 @Composable
 fun DonationsScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: DonationsViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Stats) { data ->
         val busy by vm.busy.collectAsStateWithLifecycle()
         val s = LocalStrings.current
         var search by remember { mutableStateOf(initialQuery) }

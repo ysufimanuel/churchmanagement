@@ -64,7 +64,7 @@ private fun toLocalInput(iso: String?): String = runCatching {
 
 @Composable
 fun EventsScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: EventsViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Cards) { data ->
         val busy by vm.busy.collectAsStateWithLifecycle()
         val s = LocalStrings.current
         var search by remember { mutableStateOf(initialQuery) }

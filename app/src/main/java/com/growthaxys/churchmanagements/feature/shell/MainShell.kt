@@ -97,7 +97,13 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
         Column(Modifier.fillMaxSize()) {
             TopBar(profile, onProfile = { profileOpen = true })
             Box(Modifier.weight(1f)) {
-                NavHost(nav, startDestination = "dashboard") {
+                NavHost(
+                    nav, startDestination = "dashboard",
+                    enterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220, easing = com.growthaxys.churchmanagements.designsystem.EaseOutStrong)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(220, easing = com.growthaxys.churchmanagements.designsystem.EaseOutStrong)) { it / 40 } },
+                    exitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) },
+                    popEnterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220, easing = com.growthaxys.churchmanagements.designsystem.EaseOutStrong)) },
+                    popExitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) },
+                ) {
                     val pad = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 112.dp)
                     composable("dashboard") { DashboardScreen(role, pad, onOpen = { go(it) }) }
                     for (r in listOf("members", "families", "groups", "events", "attendance", "donations", "finance", "volunteers", "communication", "reports", "users")) {

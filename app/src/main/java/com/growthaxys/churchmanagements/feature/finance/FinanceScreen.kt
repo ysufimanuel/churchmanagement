@@ -57,7 +57,7 @@ private fun statusKey(s: String) = when (s) { "approved" -> "approved"; "rejecte
 
 @Composable
 fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: FinanceViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Tabs) { data ->
         val busy by vm.busy.collectAsStateWithLifecycle()
         val s = LocalStrings.current
         var tab by remember { mutableStateOf("dashboard") }

@@ -8,6 +8,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -124,7 +131,11 @@ fun Glass(
         .background(Tokens.GlassFallback.copy(alpha = 0.55f))
         .background(brush)
         .border(1.dp, Tokens.Border, shape)
-    Column(if (onClick != null) base.clickable(onClick = onClick) else base, content = content)
+    val src = remember { MutableInteractionSource() }
+    Column(
+        if (onClick != null) base.pressScale(src, 0.985f).clickable(interactionSource = src, indication = null, onClick = onClick) else base,
+        content = content,
+    )
 }
 
 @Composable
@@ -161,20 +172,33 @@ fun AppButton(
         BtnVariant.Outline -> Triple(Color(0x0DFFFFFF), Color.White, Color(0x33FFFFFF))
         BtnVariant.Ghost -> Triple(Color.Transparent, Color.White, null)
     }
+    val src = remember { MutableInteractionSource() }
+    val pressed by src.collectIsPressedAsState()
+    // `.btn-fx-default::after`: light sweep across the primary button (on touch: while pressed).
+    val shine by animateFloatAsState(if (pressed) 1f else 0f, tween(if (pressed) 700 else 0, easing = EaseOutStrong), label = "shine")
     Row(
         modifier
             .heightIn(min = height)
             .alpha(if (enabled) 1f else 0.5f)
+            .pressScale(src)
             .clip(Tokens.ControlShape)
             .background(bg)
             .let { if (border != null) it.border(1.dp, border, Tokens.ControlShape) else it }
-            .clickable(enabled = enabled && !loading, onClick = onClick)
+            .let {
+                if (variant != BtnVariant.Default) it else it.drawWithContent {
+                    drawContent()
+                    val w = size.width
+                    val x = -1.1f * w + shine * 2.2f * w
+                    drawRect(Brush.linearGradient(listOf(Color.Transparent, Color.White.copy(alpha = 0.35f), Color.Transparent), start = Offset(x, 0f), end = Offset(x + w * 0.5f, size.height)))
+                }
+            }
+            .clickable(interactionSource = src, indication = null, enabled = enabled && !loading, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (loading) CircularProgressIndicator(Modifier.size(16.dp), color = fg, strokeWidth = 2.dp)
-        else if (icon != null) Icon(icon, null, Modifier.size(16.dp), tint = fg)
+        else if (icon != null) Icon(icon, null, Modifier.size(16.dp).iconFx(icon, pressed), tint = fg)
         Text(text, color = fg, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1)
     }
 }
@@ -188,10 +212,13 @@ fun AppIconButton(
     tint: Color = Color.White,
     size: Dp = 40.dp,
 ) {
+    val src = remember { MutableInteractionSource() }
+    val pressed by src.collectIsPressedAsState()
     Box(
-        modifier.size(size).clip(Tokens.ControlShape).clickable(onClick = onClick),
+        modifier.size(size).pressScale(src).clip(Tokens.ControlShape).background(if (pressed) Color(0x1AFFFFFF) else Color.Transparent)
+            .clickable(interactionSource = src, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription, Modifier.size(16.dp), tint = tint) }
+    ) { Icon(icon, contentDescription, Modifier.size(16.dp).iconFx(icon, pressed), tint = tint) }
 }
 
 /* ---------- Badges ---------- */
@@ -456,7 +483,8 @@ fun AppDialog(title: String, onDismiss: () -> Unit, wide: Boolean = false, conte
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
             Glass(
-                Modifier.widthIn(max = if (wide) 672.dp else 448.dp).fillMaxWidth().heightIn(max = 640.dp),
+                Modifier.widthIn(max = if (wide) 672.dp else 448.dp).fillMaxWidth().heightIn(max = 640.dp)
+                    .enterAnim(dy = 16.dp, durationMs = 300, fromScale = 0.97f),
                 strong = true,
             ) {
                 Column(Modifier.background(Color(0xE60F1117)).padding(20.dp)) {

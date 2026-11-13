@@ -41,7 +41,7 @@ class ReportsViewModel @Inject constructor(private val people: PeopleRepository,
 
 @Composable
 fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()) {
-    LoadGate(vm) { d ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Cards) { d ->
         val s = LocalStrings.current
         ModulePage(padding) {
             item { PageHeader(t("reports"), t("reports-system")) }
