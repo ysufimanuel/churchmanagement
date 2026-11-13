@@ -13,5 +13,6 @@
  "sent": "Message sent",
  "broadcast-sent": "Broadcast sent",
  "draft-saved": "Draft saved",
- "checkin-ok": "Check-in successful"
+ "checkin-ok": "Check-in successful",
+ "deleted-ok": "Deleted successfully"
 }

@@ -69,6 +69,16 @@ abstract class FeatureViewModel<T> : ViewModel() {
             if (r.ok) { toast(successKey); onOk(); refresh() } else toastError(r.error)
         }
     }
+
+    /** Like [mutate] for calls that return a created row id (Web Manager sections). */
+    fun mutateWithId(successKey: String = "saved-ok", onOk: (Long?) -> Unit = {}, block: suspend () -> com.growthaxys.churchmanagements.data.repo.IdResult) {
+        viewModelScope.launch {
+            _busy.value = true
+            val r = block()
+            _busy.value = false
+            if (r.ok) { toast(successKey); onOk(r.id); refresh() } else toastError(r.error)
+        }
+    }
 }
 
 /** Wires a ViewModel's toasts to the app toaster and loads data once. */

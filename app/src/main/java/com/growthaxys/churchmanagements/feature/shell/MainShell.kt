@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Church
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -106,7 +107,7 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
                 ) {
                     val pad = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 112.dp)
                     composable("dashboard") { DashboardScreen(role, pad, onOpen = { go(it) }) }
-                    for (r in listOf("members", "families", "groups", "events", "attendance", "donations", "finance", "volunteers", "communication", "reports", "users")) {
+                    for (r in listOf("members", "families", "groups", "events", "attendance", "donations", "finance", "volunteers", "communication", "reports", "users", "web-manager")) {
                         composable("$r?q={q}", arguments = listOf(navArgument("q") { type = NavType.StringType; nullable = true; defaultValue = null })) { e ->
                             val q = e.arguments?.getString("q").orEmpty()
                             when (r) {
@@ -121,6 +122,7 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
                                 "communication" -> CommunicationScreen(profile, role, pad, q)
                                 "reports" -> ReportsScreen(pad)
                                 "users" -> if (Rbac.canManageUsers(role)) UsersScreen(pad)
+                                "web-manager" -> if (Rbac.canUseWebManager(role)) com.growthaxys.churchmanagements.feature.webmanager.WebManagerScreen(role, pad)
                             }
                         }
                     }
@@ -128,7 +130,7 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
             }
         }
 
-        BottomNav(current, onGo = { go(it) }, onSearch = { searchOpen = true }, onMenu = { menuOpen = true },
+        BottomNav(current, role, onGo = { go(it) }, onSearch = { searchOpen = true }, onMenu = { menuOpen = true },
             modifier = Modifier.align(Alignment.BottomCenter))
     }
 
@@ -154,14 +156,15 @@ private fun TopBar(profile: Profile, onProfile: () -> Unit) {
 }
 
 @Composable
-private fun BottomNav(current: String, onGo: (String) -> Unit, onSearch: () -> Unit, onMenu: () -> Unit, modifier: Modifier = Modifier) {
+private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSearch: () -> Unit, onMenu: () -> Unit, modifier: Modifier = Modifier) {
     Glass(modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(), strong = true, shape = RoundedCornerShape(24.dp)) {
         Row(Modifier.fillMaxWidth().padding(6.dp), horizontalArrangement = Arrangement.SpaceAround) {
             NavItem(Destinations.byRoute("dashboard")!!.icon, t("dashboard"), current == "dashboard", Modifier.weight(1f)) { onGo("dashboard") }
             NavItem(Destinations.byRoute("finance")!!.icon, t("finance"), current == "finance", Modifier.weight(1f)) { onGo("finance") }
-            NavItem(Icons.Outlined.Search, t("search"), false, Modifier.weight(1f), onSearch)
-            val inMenu = current != "dashboard" && current != "finance"
-            NavItem(Icons.Outlined.Menu, t("menu"), inMenu, Modifier.weight(1f), onMenu)
+            NavItem(Icons.Outlined.Search, t("nav-search"), false, Modifier.weight(1f), onSearch)
+            if (Rbac.canUseWebManager(role)) NavItem(Icons.Outlined.Language, t("web-manager"), current == "web-manager", Modifier.weight(1f)) { onGo("web-manager") }
+            val inMenu = current != "dashboard" && current != "finance" && current != "web-manager"
+            NavItem(Icons.Outlined.Menu, t("nav-menu"), inMenu, Modifier.weight(1f), onMenu)
         }
     }
 }
