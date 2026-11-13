@@ -19,7 +19,7 @@ Source: web repo `church-managements` (branch `experiments`). Status: DONE = imp
 | Global search | PARTIAL | Chat-message search omitted |
 | Profile (photo, name, password; demo lock) | DONE | |
 | Users | PARTIAL | Read-only list; create/delete need service role |
-| Web Manager | BLOCKED | Web-only tool |
+| Web Manager | DONE (native) | Editor Visual, Header & Navigasi, Tema, Section Lanjutan, publish via RPC (anon key + RLS). Limits: preview shows the published site in a WebView; Draft preview opens in the browser (needs web login); no drag-drop WYSIWYG canvas (up/down reorder instead); color picker is HSV+hex, no alpha |
 | i18n id/en | DONE | Dictionaries generated from web + `extra-*.json` for Android-only strings |
 | UI | PARTIAL | Dark tokens from web CSS; no backdrop-blur (translucent gradient); tab styling approximated |
 | Offline (Room) / FCM / Crashlytics | NOT YET | See OFFLINE_SYNC.md |
