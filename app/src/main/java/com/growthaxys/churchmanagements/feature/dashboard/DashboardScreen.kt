@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +30,11 @@ import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -40,11 +45,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.abs
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.growthaxys.churchmanagements.core.Format
 import com.growthaxys.churchmanagements.core.LocalStrings
@@ -95,20 +102,63 @@ fun DashboardScreen(role: Role, padding: PaddingValues, onOpen: (String) -> Unit
             item {
                 BoxWithConstraints(Modifier.fillMaxWidth()) {
                     val cardWidth = maxWidth * 0.88f
+                    val sideInset = (maxWidth - cardWidth) / 2
                     val chartState = rememberLazyListState()
+                    // Select the item nearest the viewport center, not merely the first visible item.
+                    val centeredIndex by remember(chartState) {
+                        derivedStateOf {
+                            val info = chartState.layoutInfo
+                            val viewportCenter = (info.viewportStartOffset + info.viewportEndOffset) / 2
+                            info.visibleItemsInfo.minByOrNull { item ->
+                                abs((item.offset + item.size / 2) - viewportCenter)
+                            }?.index ?: 0
+                        }
+                    }
                     LazyRow(
                         state = chartState,
-                        flingBehavior = rememberSnapFlingBehavior(lazyListState = chartState),
+                        flingBehavior = rememberSnapFlingBehavior(
+                            lazyListState = chartState,
+                            snapPosition = SnapPosition.Center,
+                        ),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(end = 12.dp),
+                        // Equal side insets make the first, middle and last cards share one center line.
+                        contentPadding = PaddingValues(horizontal = sideInset),
                     ) {
                         item {
-                            ChartCard(t("attendance-stats"), Modifier.width(cardWidth).enterAnim(delayMs = 120)) {
+                            val scale by animateFloatAsState(
+                                if (centeredIndex == 0) 1f else 0.94f,
+                                tween(300, easing = FastOutSlowInEasing),
+                                label = "attendance-card-scale",
+                            )
+                            val alpha by animateFloatAsState(
+                                if (centeredIndex == 0) 1f else 0.76f,
+                                tween(300, easing = FastOutSlowInEasing),
+                                label = "attendance-card-alpha",
+                            )
+                            ChartCard(
+                                t("attendance-stats"),
+                                Modifier.width(cardWidth).graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
+                                    .enterAnim(delayMs = 120),
+                            ) {
                                 BarChartView(d.attendanceChart, Modifier.padding(top = 12.dp), 150.dp)
                             }
                         }
                         item {
-                            ChartCard(t("donation-trend"), Modifier.width(cardWidth).enterAnim(delayMs = 170)) {
+                            val scale by animateFloatAsState(
+                                if (centeredIndex == 1) 1f else 0.94f,
+                                tween(300, easing = FastOutSlowInEasing),
+                                label = "donation-card-scale",
+                            )
+                            val alpha by animateFloatAsState(
+                                if (centeredIndex == 1) 1f else 0.76f,
+                                tween(300, easing = FastOutSlowInEasing),
+                                label = "donation-card-alpha",
+                            )
+                            ChartCard(
+                                t("donation-trend"),
+                                Modifier.width(cardWidth).graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
+                                    .enterAnim(delayMs = 170),
+                            ) {
                                 LineChartView(
                                     d.donationTrend.map { Format.monthShort(it.first, strings.lang) },
                                     listOf(Triple(t("donations"), d.donationTrend.map { it.second }, Tokens.Primary)),
@@ -117,7 +167,21 @@ fun DashboardScreen(role: Role, padding: PaddingValues, onOpen: (String) -> Unit
                             }
                         }
                         item {
-                            ChartCard(t("member-distribution"), Modifier.width(cardWidth).enterAnim(delayMs = 220)) {
+                            val scale by animateFloatAsState(
+                                if (centeredIndex == 2) 1f else 0.94f,
+                                tween(300, easing = FastOutSlowInEasing),
+                                label = "member-card-scale",
+                            )
+                            val alpha by animateFloatAsState(
+                                if (centeredIndex == 2) 1f else 0.76f,
+                                tween(300, easing = FastOutSlowInEasing),
+                                label = "member-card-alpha",
+                            )
+                            ChartCard(
+                                t("member-distribution"),
+                                Modifier.width(cardWidth).graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
+                                    .enterAnim(delayMs = 220),
+                            ) {
                                 DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 12.dp), 180.dp)
                             }
                         }
