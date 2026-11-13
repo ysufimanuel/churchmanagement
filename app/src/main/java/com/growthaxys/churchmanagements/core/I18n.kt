@@ -18,8 +18,11 @@ enum class Lang(val code: String, val locale: java.util.Locale) {
 
 /** Dictionaries are generated 1:1 from web `src/lib/i18n.ts` into assets/i18n/{id,en}.json. */
 @Immutable
-class Strings(val lang: Lang, private val dict: Map<String, String>) {
+class Strings(val lang: Lang, private val dict: Map<String, String>, private val wm: Map<String, String> = emptyMap()) {
     fun t(key: String): String = dict[key] ?: key
+
+    /** Web `tr()`: Web Manager copy is authored in Indonesian; English comes from `wm-en.json` (generated from `wm-en.ts`). */
+    fun tr(indonesian: String): String = if (lang == Lang.EN) wm[indonesian] ?: indonesian else indonesian
 
     /** Translates server/Supabase error messages the same way web `tm()` does for known messages. */
     fun tm(message: String?): String {
@@ -35,7 +38,8 @@ class Strings(val lang: Lang, private val dict: Map<String, String>) {
             // extra-<lang>.json = Android-only strings (not in the web dictionary); web keys win on conflict.
             val extra = runCatching { context.assets.open("i18n/extra-${lang.code}.json").bufferedReader().use { it.readText() } }.getOrNull()
                 ?.let { Json.decodeFromString(serializer, it) }.orEmpty()
-            return Strings(lang, extra + Json.decodeFromString(serializer, text))
+            val wm = runCatching { context.assets.open("i18n/wm-en.json").bufferedReader().use { Json.decodeFromString(serializer, it.readText()) } }.getOrDefault(emptyMap())
+            return Strings(lang, extra + Json.decodeFromString(serializer, text), wm)
         }
 
         private val ID_TO_EN = mapOf(
@@ -62,3 +66,7 @@ val LocalStrings = compositionLocalOf { Strings(Lang.EN, emptyMap()) }
 /** Shorthand used in composables: `t("members")`. */
 @Composable
 fun t(key: String): String = LocalStrings.current.t(key)
+
+/** Web Manager copy (`tr('…Indonesian…')`). */
+@Composable
+fun tr(indonesian: String): String = LocalStrings.current.tr(indonesian)

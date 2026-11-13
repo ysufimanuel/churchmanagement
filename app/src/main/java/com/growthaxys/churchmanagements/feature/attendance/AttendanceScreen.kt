@@ -44,7 +44,7 @@ class AttendanceViewModel @Inject constructor(private val repo: EventsRepository
 
 @Composable
 fun AttendanceScreen(role: Role, padding: PaddingValues, vm: AttendanceViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Tabs) { data ->
         val s = LocalStrings.current
         var tab by remember { mutableStateOf("checkin") }
         var eventId by remember { mutableStateOf("") }
@@ -92,7 +92,7 @@ fun AttendanceScreen(role: Role, padding: PaddingValues, vm: AttendanceViewModel
                             AppSelect(filterEvent, listOf(Option("", t("all-events"))) + data.events.map { Option(it.id.toString(), it.nama) }, { filterEvent = it })
                             DateField(filterDate, { filterDate = it }, placeholder = t("date"))
                             ExportButton(t("attendance-report"), "attendance", {
-                                filtered.map { mapOf(t("date") to it.tanggal, t("event") to eventName(it.eventId), t("name") to memberName(it.memberId), t("checkin-time") to it.waktu, t("status") to it.status) }
+                                filtered.map { mapOf(s.t("date") to it.tanggal, s.t("event") to eventName(it.eventId), s.t("name") to memberName(it.memberId), s.t("checkin-time") to it.waktu, s.t("status") to it.status) }
                             })
                         }
                     }

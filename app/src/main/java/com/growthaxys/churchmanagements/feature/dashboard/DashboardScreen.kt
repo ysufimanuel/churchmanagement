@@ -36,7 +36,7 @@ class DashboardViewModel @Inject constructor(private val repo: DashboardReposito
 /** `onOpen(route)` navigates to a module (stat tiles are tappable like the web dashboard links). */
 @Composable
 fun DashboardScreen(role: Role, padding: PaddingValues, onOpen: (String) -> Unit, vm: DashboardViewModel = hiltViewModel()) {
-    LoadGate(vm) { d ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Dashboard) { d ->
         val s = LocalStrings.current
         @Composable fun Tile(label: String, value: String, route: String, mod: Modifier, color: Color = Color.White) =
             StatCard(label, value, mod.clickable { onOpen(route) }, color)

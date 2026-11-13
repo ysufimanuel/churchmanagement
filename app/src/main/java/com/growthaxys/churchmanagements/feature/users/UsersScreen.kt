@@ -28,7 +28,7 @@ class UsersViewModel @Inject constructor(private val repo: ProfileRepository) : 
 /** Read-only list (superadmin). Creating/deleting users needs the service-role key and stays web-only — see WEB_PARITY_MATRIX. */
 @Composable
 fun UsersScreen(padding: PaddingValues, vm: UsersViewModel = hiltViewModel()) {
-    LoadGate(vm) { users ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Table) { users ->
         val s = LocalStrings.current
         var search by remember { mutableStateOf("") }
         val q = search.trim().lowercase()

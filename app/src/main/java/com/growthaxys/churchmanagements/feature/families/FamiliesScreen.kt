@@ -39,7 +39,7 @@ class FamiliesViewModel @Inject constructor(private val repo: PeopleRepository) 
 
 @Composable
 fun FamiliesScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: FamiliesViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Cards) { data ->
         val busy by vm.busy.collectAsStateWithLifecycle()
         var search by remember { mutableStateOf(initialQuery) }
         var editing by remember { mutableStateOf<FamilyInput?>(null) }

@@ -15,7 +15,7 @@ import javax.inject.Singleton
  * (id = auth.uid() AND role unchanged), so no elevated key is needed.
  */
 @Singleton
-class ProfileRepository @Inject constructor(private val client: SupabaseClient, private val auth: AuthRepository) : BaseRepo(client, auth) {
+class ProfileRepository @Inject constructor(client: SupabaseClient, private val auth: AuthRepository) : BaseRepo(client, auth) {
     private val bucket get() = client.storage.from("avatars")
 
     suspend fun update(nama: String, username: String): ActionResult {
@@ -35,7 +35,7 @@ class ProfileRepository @Inject constructor(private val client: SupabaseClient, 
         val id = userId() ?: return ActionResult.fail("Unauthorized")
         return action {
             val path = "$id/avatar-${System.currentTimeMillis()}.jpg"
-            bucket.upload(path, bytes) { upsert = false }
+            bucket.upload(path, bytes, upsert = false)
             val url = bucket.publicUrl(path)
             table("profiles").update(jsonOf("avatar_url" to url)) { filter { eq("id", id) } }
             runCatching { bucket.list(id).map { "$id/${it.name}" }.filter { it != path }.let { old -> if (old.isNotEmpty()) bucket.delete(old) } }

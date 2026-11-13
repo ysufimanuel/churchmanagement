@@ -11,6 +11,7 @@ import com.growthaxys.churchmanagements.core.LocalStrings
 import com.growthaxys.churchmanagements.data.ActionResult
 import com.growthaxys.churchmanagements.designsystem.ErrorBox
 import com.growthaxys.churchmanagements.designsystem.LoadingBox
+import androidx.compose.foundation.layout.padding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,6 +69,16 @@ abstract class FeatureViewModel<T> : ViewModel() {
             if (r.ok) { toast(successKey); onOk(); refresh() } else toastError(r.error)
         }
     }
+
+    /** Like [mutate] for calls that return a created row id (Web Manager sections). */
+    fun mutateWithId(successKey: String = "saved-ok", onOk: (Long?) -> Unit = {}, block: suspend () -> com.growthaxys.churchmanagements.data.repo.IdResult) {
+        viewModelScope.launch {
+            _busy.value = true
+            val r = block()
+            _busy.value = false
+            if (r.ok) { toast(successKey); onOk(r.id); refresh() } else toastError(r.error)
+        }
+    }
 }
 
 /** Wires a ViewModel's toasts to the app toaster and loads data once. */
@@ -79,13 +90,22 @@ fun <T> FeatureViewModel<T>.Bind() {
 }
 
 @Composable
-fun <T> LoadGate(vm: FeatureViewModel<T>, content: @Composable (T) -> Unit) {
+fun <T> LoadGate(
+    vm: FeatureViewModel<T>,
+    padding: androidx.compose.foundation.layout.PaddingValues = androidx.compose.foundation.layout.PaddingValues(),
+    skeleton: com.growthaxys.churchmanagements.designsystem.SkeletonKind = com.growthaxys.churchmanagements.designsystem.SkeletonKind.Table,
+    content: @Composable (T) -> Unit,
+) {
     vm.Bind()
     val s by vm.state.collectAsStateWithLifecycle()
-    when (val st = s) {
-        is Load.Loading -> LoadingBox()
-        is Load.Error -> ErrorBox(LocalStrings.current.tm(st.message)) { vm.refresh() }
-        is Load.Ready -> content(st.data)
+    val phase = when (s) { is Load.Loading -> 0; is Load.Error -> 1; is Load.Ready -> 2 }
+    // skeleton -> content cross-fade (web: loading.tsx -> page)
+    androidx.compose.animation.Crossfade(phase, animationSpec = androidx.compose.animation.core.tween(300), label = "loadgate") { p ->
+        when (val st = s) {
+            is Load.Loading -> com.growthaxys.churchmanagements.designsystem.PageSkeleton(skeleton, padding)
+            is Load.Error -> androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.padding(padding)) { ErrorBox(LocalStrings.current.tm(st.message)) { vm.refresh() } }
+            is Load.Ready -> if (p == 2) content(st.data)
+        }
     }
 }
 

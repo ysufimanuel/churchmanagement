@@ -50,7 +50,7 @@ class GroupsViewModel @Inject constructor(private val repo: PeopleRepository) : 
 
 @Composable
 fun GroupsScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: GroupsViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Cards) { data ->
         val busy by vm.busy.collectAsStateWithLifecycle()
         var search by remember { mutableStateOf(initialQuery) }
         var editing by remember { mutableStateOf<GroupInput?>(null) }

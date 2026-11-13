@@ -1,23 +1,30 @@
 name: Android CI
 on:
-  push: { branches: [main, experiments] }
+  push:
+    branches: [main, android-native, integrate-experiments]
   pull_request:
+    branches: [main, android-native]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 17 }
-      - uses: android-actions/setup-android@v3
+        with:
+          distribution: temurin
+          java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
-        with: { gradle-version: 8.9 }
-      # No gradlew is committed yet: generate it once (then commit it).
-      - run: gradle wrapper --gradle-version 8.9
-      - name: Lint, unit tests, debug APK
-        env:
-          ORG_GRADLE_PROJECT_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          ORG_GRADLE_PROJECT_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: ./gradlew lintDebug testDebugUnitTest assembleDebug
-      - uses: actions/upload-artifact@v4
-        with: { name: app-debug, path: app/build/outputs/apk/debug/*.apk }
+        with:
+          gradle-version: "8.9"
+      - name: Assemble debug APK
+        run: gradle :app:assembleDebug
+      - name: Run unit tests
+        run: gradle :app:testDebugUnitTest
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: church-managements-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

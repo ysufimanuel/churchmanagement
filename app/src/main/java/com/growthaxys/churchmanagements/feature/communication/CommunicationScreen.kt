@@ -67,7 +67,7 @@ class CommunicationViewModel @Inject constructor(private val repo: Communication
 
 @Composable
 fun CommunicationScreen(profile: Profile?, role: Role, padding: PaddingValues, initialQuery: String, vm: CommunicationViewModel = hiltViewModel()) {
-    LoadGate(vm) { data ->
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Tabs) { data ->
         val busy by vm.busy.collectAsStateWithLifecycle()
         val s = LocalStrings.current
         val me = profile?.id.orEmpty()

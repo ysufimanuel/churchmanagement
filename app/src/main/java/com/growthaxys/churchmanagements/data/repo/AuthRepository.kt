@@ -6,9 +6,9 @@ import com.growthaxys.churchmanagements.data.action
 import com.growthaxys.churchmanagements.data.jsonOf
 import com.growthaxys.churchmanagements.data.model.Profile
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.gotrue.SessionStatus
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,8 +47,8 @@ class AuthRepository @Inject constructor(private val client: SupabaseClient) {
                     _state.value = if (uid == null) SessionState.SignedOut else loadProfile(uid)?.let { SessionState.SignedIn(it) } ?: SessionState.SignedOut
                 }
                 is SessionStatus.NotAuthenticated -> _state.value = SessionState.SignedOut
-                is SessionStatus.Initializing -> _state.value = SessionState.Loading
-                else -> Unit // RefreshFailure: keep current state; SDK retries
+                is SessionStatus.LoadingFromStorage -> _state.value = SessionState.Loading
+                else -> Unit // NetworkError: keep current state; SDK retries
             }
         }
     }
@@ -108,7 +108,7 @@ class AuthRepository @Inject constructor(private val client: SupabaseClient) {
         try {
             client.auth.signInWith(Email) { this.email = email; this.password = current }
         } catch (e: Exception) { return ActionResult.fail(PASSWORD_WRONG) }
-        return action { client.auth.updateUser { password = next } }
+        return action { client.auth.modifyUser { password = next } }
     }
 
     companion object { const val PASSWORD_WRONG = "__password_wrong__" }

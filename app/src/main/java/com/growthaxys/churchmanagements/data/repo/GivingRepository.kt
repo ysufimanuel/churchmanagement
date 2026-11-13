@@ -7,6 +7,7 @@ import com.growthaxys.churchmanagements.data.model.*
 import com.growthaxys.churchmanagements.data.orNull
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import javax.inject.Inject
 import javax.inject.Singleton
 

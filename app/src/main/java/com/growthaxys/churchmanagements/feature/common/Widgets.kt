@@ -62,7 +62,7 @@ fun RowActions(canEdit: Boolean, canDelete: Boolean, onEdit: () -> Unit, onDelet
 
 /** Export button -> format chooser (CSV / XLS / TXT / PDF-print). */
 @Composable
-fun ExportButton(title: String, filename: String, rows: () -> Exporter.Rows, modifier: Modifier = Modifier) {
+fun ExportButton(title: String, filename: String, rows: () -> ExportRows, modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     AppButton(t("export"), { open = true }, modifier, variant = BtnVariant.Secondary, icon = Icons.Outlined.Download)

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Handshake
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.VolunteerActivism
@@ -33,7 +34,8 @@ object Destinations {
         Dest("volunteers", "volunteers", Icons.Outlined.Handshake),
         Dest("communication", "communication", Icons.Outlined.Forum),
         Dest("reports", "reports", Icons.Outlined.BarChart),
-        Dest("users", "users", Icons.Outlined.ManageAccounts) { Rbac.canManageUsers(it) },
+        Dest("web-manager", "web-manager", Icons.Outlined.Language) { Rbac.canUseWebManager(it) },
+        Dest("users", "user-management", Icons.Outlined.ManageAccounts) { Rbac.canManageUsers(it) },
     )
     fun forRole(role: Role) = all.filter { it.visible(role) }
     fun byRoute(r: String) = all.firstOrNull { it.route == r }

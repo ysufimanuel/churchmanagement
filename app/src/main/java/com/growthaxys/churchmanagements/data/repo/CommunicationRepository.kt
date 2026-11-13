@@ -7,6 +7,8 @@ import com.growthaxys.churchmanagements.data.model.*
 import com.growthaxys.churchmanagements.data.orNull
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.decodeRecord
@@ -77,7 +79,7 @@ class CommunicationRepository @Inject constructor(client: SupabaseClient, privat
     suspend fun notifications(): List<Notification> {
         val me = userId() ?: return emptyList()
         return table("notifications").select(raw("id, title, message, type, read, created_at, user_id")) {
-            filter { or { isExact("user_id", null); eq("user_id", me) } }
+            filter { or { filter("user_id", FilterOperator.IS, "null"); eq("user_id", me) } }
             order("created_at", DESC)
             limit(30)
         }.decodeList()

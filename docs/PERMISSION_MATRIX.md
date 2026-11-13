@@ -1,11 +1,17 @@
-# PERMISSION_MATRIX (mirrors web `src/lib/rbac.ts`; RLS remains authoritative)
-| Action | user | admin | superadmin |
-|---|---|---|---|
-| View / export | yes | yes | yes |
-| Add | no | yes | yes |
-| Edit | no | yes | yes |
-| Delete | no | no | yes |
-| Approve/reject finance | no | no | yes |
-| Finance entry status | — | pending | approved |
-| Manage users (list) | no | no | yes |
-UI gating is convenience only; server errors are surfaced as toasts.
+# Permission matrix
+
+Confirmed web roles: `user`, `admin`, `superadmin`.
+
+| Capability | user | admin | superadmin |
+|---|---:|---:|---:|
+| View | Yes | Yes | Yes |
+| Add | No | Yes | Yes |
+| Edit | No | Yes | Yes |
+| Delete | No | No | Yes |
+| Finance approve/reject | No | No | Yes |
+| Manage users | No | No | Yes |
+| Web Manager | No | Yes | Yes |
+
+Finance behavior from `src/lib/actions/finance.ts`: admin-created transactions are pending; superadmin-created transactions auto-approved; approval/rejection calls `process_finance_transaction`; only superadmin can process or delete transactions.
+
+This is the web application's role baseline, not a substitute for live RLS enforcement. Audit each table policy and action before release.

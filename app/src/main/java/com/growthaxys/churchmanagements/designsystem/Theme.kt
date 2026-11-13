@@ -7,7 +7,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.ProvideTextStyle
+import com.growthaxys.churchmanagements.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -81,8 +86,15 @@ private val ColorScheme = darkColorScheme(
     outline = Tokens.Border,
 )
 
-// Web uses the system sans stack at 16px base (13px in `.dash-compact` on phones).
-private val AppTypography = Typography(
+/** Web `default-web.css`: "Plus Jakarta Sans" 400–800 (variable font bundled in res/font). */
+@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+val PlusJakartaSans = FontFamily(
+    listOf(400, 500, 600, 700, 800).map { w ->
+        Font(R.font.plus_jakarta_sans, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
+    }
+)
+
+private val Base = Typography(
     bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 24.sp),
     bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 22.sp),
     bodySmall = TextStyle(fontSize = 12.sp, lineHeight = 18.sp),
@@ -92,8 +104,24 @@ private val AppTypography = Typography(
     labelSmall = TextStyle(fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium),
 )
 
+private val AppTypography = with(Base) {
+    copy(
+        displayLarge = displayLarge.copy(fontFamily = PlusJakartaSans), displayMedium = displayMedium.copy(fontFamily = PlusJakartaSans),
+        displaySmall = displaySmall.copy(fontFamily = PlusJakartaSans), headlineLarge = headlineLarge.copy(fontFamily = PlusJakartaSans),
+        headlineMedium = headlineMedium.copy(fontFamily = PlusJakartaSans), headlineSmall = headlineSmall.copy(fontFamily = PlusJakartaSans),
+        titleLarge = titleLarge.copy(fontFamily = PlusJakartaSans), titleMedium = titleMedium.copy(fontFamily = PlusJakartaSans),
+        titleSmall = titleSmall.copy(fontFamily = PlusJakartaSans), bodyLarge = bodyLarge.copy(fontFamily = PlusJakartaSans),
+        bodyMedium = bodyMedium.copy(fontFamily = PlusJakartaSans), bodySmall = bodySmall.copy(fontFamily = PlusJakartaSans),
+        labelLarge = labelLarge.copy(fontFamily = PlusJakartaSans), labelMedium = labelMedium.copy(fontFamily = PlusJakartaSans),
+        labelSmall = labelSmall.copy(fontFamily = PlusJakartaSans),
+    )
+}
+
 @Composable
 fun ChurchTheme(content: @Composable () -> Unit) {
     @Suppress("UNUSED_VARIABLE") val ignored = isSystemInDarkTheme() // web is dark-only
-    MaterialTheme(colorScheme = ColorScheme, typography = AppTypography, content = content)
+    MaterialTheme(colorScheme = ColorScheme, typography = AppTypography) {
+        // Material `Text` falls back to LocalTextStyle; make every Text (incl. ad-hoc fontSize) use the web font.
+        ProvideTextStyle(TextStyle(fontFamily = PlusJakartaSans, color = Color.White), content = content)
+    }
 }
