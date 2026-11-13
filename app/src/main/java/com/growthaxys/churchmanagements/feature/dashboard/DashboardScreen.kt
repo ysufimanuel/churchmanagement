@@ -3,6 +3,9 @@ package com.growthaxys.churchmanagements.feature.dashboard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -92,22 +95,31 @@ fun DashboardScreen(role: Role, padding: PaddingValues, onOpen: (String) -> Unit
             item {
                 BoxWithConstraints(Modifier.fillMaxWidth()) {
                     val cardWidth = maxWidth * 0.88f
-                    Row(
-                        Modifier.horizontalScroll(rememberScrollState()),
+                    val chartState = rememberLazyListState()
+                    LazyRow(
+                        state = chartState,
+                        flingBehavior = rememberSnapFlingBehavior(lazyListState = chartState),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(end = 12.dp),
                     ) {
-                        ChartCard(t("attendance-stats"), Modifier.width(cardWidth).enterAnim(delayMs = 120)) {
-                            BarChartView(d.attendanceChart, Modifier.padding(top = 12.dp), 150.dp)
+                        item {
+                            ChartCard(t("attendance-stats"), Modifier.width(cardWidth).enterAnim(delayMs = 120)) {
+                                BarChartView(d.attendanceChart, Modifier.padding(top = 12.dp), 150.dp)
+                            }
                         }
-                        ChartCard(t("donation-trend"), Modifier.width(cardWidth).enterAnim(delayMs = 170)) {
-                            LineChartView(
-                                d.donationTrend.map { Format.monthShort(it.first, strings.lang) },
-                                listOf(Triple(t("donations"), d.donationTrend.map { it.second }, Tokens.Primary)),
-                                Modifier.padding(top = 12.dp), 150.dp, area = true,
-                            )
+                        item {
+                            ChartCard(t("donation-trend"), Modifier.width(cardWidth).enterAnim(delayMs = 170)) {
+                                LineChartView(
+                                    d.donationTrend.map { Format.monthShort(it.first, strings.lang) },
+                                    listOf(Triple(t("donations"), d.donationTrend.map { it.second }, Tokens.Primary)),
+                                    Modifier.padding(top = 12.dp), 150.dp, area = true,
+                                )
+                            }
                         }
-                        ChartCard(t("member-distribution"), Modifier.width(cardWidth).enterAnim(delayMs = 220)) {
-                            DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 12.dp), 180.dp)
+                        item {
+                            ChartCard(t("member-distribution"), Modifier.width(cardWidth).enterAnim(delayMs = 220)) {
+                                DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 12.dp), 180.dp)
+                            }
                         }
                     }
                 }
