@@ -109,9 +109,9 @@ fun AttendanceScreen(role: Role, padding: PaddingValues, vm: AttendanceViewModel
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             StatCard(t("total-attendance"), data.attendance.size.toString(), Modifier.weight(1f))
                             StatCard(t("average"), (if (perDate.isNotEmpty()) Math.round(data.attendance.size.toDouble() / perDate.size) else 0).toString(), Modifier.weight(1f))
+                            StatCard(t("top-event"), topEvent, Modifier.weight(1.4f))
                         }
                     }
-                    item { StatCard(t("top-event"), topEvent) }
                     item { AppCard { Column(Modifier.padding(16.dp)) { Text(t("attendance-stats"), fontSize = 16.sp, color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold); BarChartView(perDate, Modifier.padding(top = 12.dp), 220.dp) } } }
                 }
             }
