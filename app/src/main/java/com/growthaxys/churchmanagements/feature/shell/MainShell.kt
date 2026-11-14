@@ -17,6 +17,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -167,47 +169,120 @@ private fun TopBar(profile: Profile, onProfile: () -> Unit) {
 
 @Composable
 private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSearch: () -> Unit, onMenu: () -> Unit, modifier: Modifier = Modifier) {
-    Glass(modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(), strong = true, shape = RoundedCornerShape(24.dp)) {
-        Row(Modifier.fillMaxWidth().padding(6.dp), horizontalArrangement = Arrangement.SpaceAround) {
-            NavItem(Destinations.byRoute("dashboard")!!.icon, t("dashboard"), current == "dashboard", Modifier.weight(1f)) { onGo("dashboard") }
-            NavItem(Destinations.byRoute("finance")!!.icon, t("finance"), current == "finance", Modifier.weight(1f)) { onGo("finance") }
-            NavItem(Icons.Outlined.Search, t("nav-search"), false, Modifier.weight(1f), onSearch)
-            if (Rbac.canUseWebManager(role)) NavItem(Icons.Outlined.Language, t("web-manager"), current == "web-manager", Modifier.weight(1f)) { onGo("web-manager") }
-            val inMenu = current != "dashboard" && current != "finance" && current != "web-manager"
-            NavItem(Icons.Outlined.Menu, t("nav-menu"), inMenu, Modifier.weight(1f), onMenu)
+    val hasWebManager = Rbac.canUseWebManager(role)
+    val itemCount = if (hasWebManager) 5 else 4
+    val selectedIndex = when {
+        current == "dashboard" -> 0
+        current == "finance" -> 1
+        current == "web-manager" && hasWebManager -> 3
+        else -> itemCount - 1
+    }
+
+    Glass(
+        modifier.navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .fillMaxWidth(),
+        strong = true,
+        shape = RoundedCornerShape(32.dp),
+    ) {
+        BoxWithConstraints(
+            Modifier.fillMaxWidth().padding(6.dp).height(68.dp),
+        ) {
+            val itemWidth = maxWidth / itemCount
+            val indicatorOffset by androidx.compose.animation.core.animateDpAsState(
+                targetValue = itemWidth * selectedIndex + (itemWidth - 44.dp) / 2,
+                animationSpec = spring(dampingRatio = 0.78f, stiffness = 360f),
+                label = "nav-selection-indicator",
+            )
+
+            // One shared glass bubble glides between destinations; the dock itself stays still.
+            Box(
+                Modifier
+                    .align(Alignment.CenterStart)
+                    .offset(x = indicatorOffset, y = (-7).dp)
+                    .size(44.dp)
+                    .background(Color.White.copy(alpha = 0.10f), CircleShape)
+                    .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape),
+            )
+
+            Row(
+                Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                NavItem(
+                    Destinations.byRoute("dashboard")!!.icon,
+                    t("dashboard"),
+                    current == "dashboard",
+                    Modifier.weight(1f),
+                ) { onGo("dashboard") }
+                NavItem(
+                    Destinations.byRoute("finance")!!.icon,
+                    t("finance"),
+                    current == "finance",
+                    Modifier.weight(1f),
+                ) { onGo("finance") }
+                NavItem(
+                    Icons.Outlined.Search,
+                    t("nav-search"),
+                    false,
+                    Modifier.weight(1f),
+                    onSearch,
+                )
+                if (hasWebManager) {
+                    NavItem(
+                        Icons.Outlined.Language,
+                        t("web-manager"),
+                        current == "web-manager",
+                        Modifier.weight(1f),
+                    ) { onGo("web-manager") }
+                }
+                val inMenu = current != "dashboard" && current != "finance" && current != "web-manager"
+                NavItem(
+                    Icons.Outlined.Menu,
+                    t("nav-menu"),
+                    inMenu,
+                    Modifier.weight(1f),
+                    onMenu,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun NavItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun NavItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    active: Boolean,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
     val haptics = LocalHapticFeedback.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val containerColor by animateColorAsState(
-        targetValue = if (active) Tokens.Primary.copy(alpha = 0.16f) else Color.Transparent,
-        animationSpec = tween(240, easing = FastOutSlowInEasing),
-        label = "nav-container",
-    )
     val iconScale by animateFloatAsState(
         targetValue = when {
-            pressed -> 0.88f
-            active -> 1.10f
+            pressed -> 0.92f
+            active -> 1.08f
             else -> 1f
         },
-        animationSpec = spring(dampingRatio = 0.48f, stiffness = 520f),
+        animationSpec = spring(dampingRatio = 0.62f, stiffness = 520f),
         label = "nav-icon-scale",
     )
-    val indicatorWidth by androidx.compose.animation.core.animateDpAsState(
-        targetValue = if (active) 16.dp else 0.dp,
-        animationSpec = spring(dampingRatio = 0.72f, stiffness = 420f),
-        label = "nav-indicator",
+    val iconTint by animateColorAsState(
+        targetValue = if (active) Tokens.Primary else Tokens.MutedForeground,
+        animationSpec = tween(220, easing = FastOutSlowInEasing),
+        label = "nav-icon-tint",
+    )
+    val labelTint by animateColorAsState(
+        targetValue = if (active) Color.White else Tokens.MutedForeground,
+        animationSpec = tween(220, easing = FastOutSlowInEasing),
+        label = "nav-label-tint",
     )
 
     Column(
         modifier
-            .heightIn(min = 58.dp)
-            .background(containerColor, RoundedCornerShape(18.dp))
+            .fillMaxHeight()
             .clickable(
                 interactionSource = interaction,
                 indication = null,
@@ -216,31 +291,26 @@ private fun NavItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label
                     onClick()
                 },
             )
-            .padding(horizontal = 4.dp, vertical = 6.dp),
+            .padding(horizontal = 2.dp, vertical = 5.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(
-            icon,
+            imageVector = icon,
             contentDescription = label,
             modifier = Modifier.size(22.dp).graphicsLayer {
                 scaleX = iconScale
                 scaleY = iconScale
             },
-            tint = if (active) Tokens.Primary else Tokens.MutedForeground,
+            tint = iconTint,
         )
+        Spacer(Modifier.height(4.dp))
         Text(
-            label,
-            fontSize = 10.sp,
+            text = label,
+            fontSize = 9.sp,
             fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-            color = if (active) Tokens.Primary else Tokens.MutedForeground,
+            color = labelTint,
             maxLines = 1,
-        )
-        Spacer(Modifier.height(3.dp))
-        Box(
-            Modifier
-                .size(width = indicatorWidth, height = 3.dp)
-                .background(if (active) Tokens.Primary else Color.Transparent, CircleShape),
         )
     }
 }
