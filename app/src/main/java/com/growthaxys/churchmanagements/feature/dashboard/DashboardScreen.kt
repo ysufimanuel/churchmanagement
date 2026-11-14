@@ -1,374 +1,189 @@
 package com.growthaxys.churchmanagements.feature.dashboard
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.Handshake
+import androidx.compose.material.icons.outlined.People
+import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.material.icons.outlined.ViewInAr
+import androidx.compose.material.icons.outlined.VolunteerActivism
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.growthaxys.churchmanagements.core.designsystem.*
-import com.growthaxys.churchmanagements.domain.model.UserProfile
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.growthaxys.churchmanagements.core.Format
+import com.growthaxys.churchmanagements.core.LocalStrings
+import com.growthaxys.churchmanagements.core.Role
+import com.growthaxys.churchmanagements.core.t
+import com.growthaxys.churchmanagements.data.repo.DashboardData
+import com.growthaxys.churchmanagements.data.repo.DashboardRepository
+import com.growthaxys.churchmanagements.designsystem.*
+import com.growthaxys.churchmanagements.feature.common.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-private data class DashboardMetric(
-    val label: String,
-    val icon: ImageVector,
-    val tint: Color
-)
+@HiltViewModel
+class DashboardViewModel @Inject constructor(private val repo: DashboardRepository) : FeatureViewModel<DashboardData>() {
+    override suspend fun fetch() = repo.load()
+}
 
-private val dashboardMetrics = listOf(
-    DashboardMetric("Total Jemaat", Icons.Outlined.Groups, Color(0xFFFB923C)),
-    DashboardMetric("Kehadiran Minggu Ini", Icons.Outlined.FactCheck, Color(0xFF60A5FA)),
-    DashboardMetric("Donasi Bulan Ini", Icons.Outlined.VolunteerActivism, Color(0xFF34D399)),
-    DashboardMetric("Event Aktif", Icons.Outlined.CalendarMonth, Color(0xFFA78BFA)),
-    DashboardMetric("Total Grup", Icons.Outlined.Hub, Color(0xFFF87171)),
-    DashboardMetric("Relawan Aktif", Icons.Outlined.Handshake, Color(0xFFFBBF24))
-)
-
-private data class DashboardTab(val label: String, val icon: ImageVector)
-
-private val dashboardTabs = listOf(
-    DashboardTab("Home", Icons.Outlined.Dashboard),
-    DashboardTab("Keuangan", Icons.Outlined.AccountBalanceWallet),
-    DashboardTab("Cari", Icons.Outlined.Search),
-    DashboardTab("Web", Icons.Outlined.Language),
-    DashboardTab("Menu", Icons.Outlined.Menu)
-)
-
-private val moduleItems = listOf(
-    "Jemaat" to Icons.Outlined.Groups,
-    "Keluarga" to Icons.Outlined.FamilyRestroom,
-    "Grup" to Icons.Outlined.Hub,
-    "Jadwal & Event" to Icons.Outlined.Event,
-    "Kehadiran" to Icons.Outlined.FactCheck,
-    "Donasi" to Icons.Outlined.VolunteerActivism,
-    "Keuangan" to Icons.Outlined.AccountBalanceWallet,
-    "Relawan" to Icons.Outlined.Handshake,
-    "Komunikasi" to Icons.Outlined.Campaign,
-    "Laporan" to Icons.Outlined.Assessment,
-    "Manajemen Pengguna" to Icons.Outlined.ManageAccounts,
-    "Web Manager" to Icons.Outlined.Web
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
+/** Mobile layout follows the web dashboard: one-column stat cards, then independent content cards. */
 @Composable
-fun DashboardScreen(profile: UserProfile, onSignOut: () -> Unit) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var showMenu by remember { mutableStateOf(false) }
-    var showSearch by remember { mutableStateOf(false) }
-    var selectedModule by remember { mutableStateOf<String?>(null) }
-    var entered by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { entered = true }
-
-    Scaffold(
-        containerColor = Background,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                        Text("GetChurchly", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text("Church Management System", color = Muted, fontSize = 10.sp)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showSearch = true }) {
-                        Icon(Icons.Outlined.Search, contentDescription = "Cari", tint = Color.White)
-                    }
-                    IconButton(onClick = onSignOut) {
-                        Icon(Icons.Outlined.Logout, contentDescription = "Keluar", tint = Cyan)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color(0xF21A1D24),
-                contentColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                dashboardTabs.forEachIndexed { index, tab ->
-                    NavigationBarItem(
-                        selected = selectedTab == index,
-                        onClick = {
-                            selectedTab = index
-                            when (index) {
-                                2 -> showSearch = true
-                                4 -> showMenu = true
-                                1 -> selectedModule = "Keuangan"
-                                3 -> selectedModule = "Web Manager"
-                                else -> selectedModule = null
-                            }
-                        },
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label, fontSize = 10.sp, maxLines = 1) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Cyan,
-                            selectedTextColor = Cyan,
-                            indicatorColor = Cyan.copy(alpha = .12f),
-                            unselectedIconColor = Muted,
-                            unselectedTextColor = Muted
-                        )
-                    )
-                }
-            }
-        }
-    ) { padding ->
-        if (selectedModule != null) {
-            ModuleComingSoon(
-                title = selectedModule!!,
-                onBack = { selectedModule = null; selectedTab = 0 }
-            )
-        } else {
-            Column(
-                Modifier.fillMaxSize()
-                    .padding(padding)
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(Color(0xFF101820), Background, Background)
-                        )
-                    )
-            ) {
-                androidx.compose.foundation.lazy.LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 22.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    item {
-                        AnimatedVisibility(
-                            visible = entered,
-                            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 5 })
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Text("Dashboard", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text("Selamat datang kembali, ${profile.name}", fontSize = 12.sp, color = Muted)
-                            }
-                        }
-                    }
-                    item {
-                        AnimatedVisibility(
-                            visible = entered,
-                            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 6 })
-                        ) {
-                            Row(
-                                Modifier.fillMaxWidth()
-                                    .background(
-                                        Brush.linearGradient(listOf(Color(0xFF17333C), Color(0xFF211C3B))),
-                                        RoundedCornerShape(18.dp)
-                                    )
-                                    .border(1.dp, Border, RoundedCornerShape(18.dp))
-                                    .padding(15.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Surface(
-                                    shape = RoundedCornerShape(50),
-                                    color = Cyan.copy(alpha = .14f),
-                                    modifier = Modifier.size(44.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(
-                                            profile.name.trim().split(Regex("\\s+")).take(2).mapNotNull { it.firstOrNull()?.uppercase() }.joinToString(""),
-                                            color = Cyan, fontWeight = FontWeight.Bold, fontSize = 15.sp
-                                        )
-                                    }
-                                }
-                                Column(Modifier.weight(1f)) {
-                                    Text(profile.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-                                    Text(profile.role.name.lowercase().replaceFirstChar { it.uppercase() }, fontSize = 11.sp, color = Muted)
-                                }
-                                Icon(Icons.Outlined.VerifiedUser, contentDescription = null, tint = Cyan, modifier = Modifier.size(19.dp))
-                            }
-                        }
-                    }
-                    item {
-                        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Ringkasan Gereja", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                                Spacer(Modifier.weight(1f))
-                                Text("Data live", fontSize = 10.sp, color = Muted)
-                            }
-                            dashboardMetrics.chunked(3).forEach { rowMetrics ->
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    rowMetrics.forEach { metric ->
-                                        MetricCard(metric, Modifier.weight(1f))
-                                    }
-                                }
-                            }
-                            Text(
-                                "Angka akan ditampilkan setelah query statistik dashboard terhubung.",
-                                color = Muted, fontSize = 10.sp
-                            )
-                        }
-                    }
-                    item {
-                        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Text("Analitik", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                            Row(
-                                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                AnalyticsCard("Kehadiran", "Statistik kehadiran", Icons.Outlined.ShowChart)
-                                AnalyticsCard("Tren Donasi", "Donasi per bulan", Icons.Outlined.TrendingUp)
-                                AnalyticsCard("Distribusi Jemaat", "Komposisi anggota", Icons.Outlined.DonutSmall)
-                            }
-                        }
-                    }
-                    item {
-                        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Text("Aktivitas Terbaru", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                            Surface(
-                                color = Surface,
-                                shape = RoundedCornerShape(14.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Border)
-                            ) {
-                                Row(
-                                    Modifier.fillMaxWidth().padding(14.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    Icon(Icons.Outlined.History, contentDescription = null, tint = Muted)
-                                    Text("Aktivitas akan muncul setelah feed aktivitas web terhubung.", fontSize = 11.sp, color = Muted)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (showMenu) {
-        ModalBottomSheet(
-            onDismissRequest = { showMenu = false },
-            containerColor = Surface,
-            contentColor = Color.White
-        ) {
-            Column(
-                Modifier.fillMaxWidth().padding(horizontal = 18.dp).padding(bottom = 28.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text("Semua Menu", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("Pilih modul Church Managements", color = Muted, fontSize = 12.sp)
-                moduleItems.forEach { (label, icon) ->
-                    Row(
-                        Modifier.fillMaxWidth().clickable {
-                            showMenu = false
-                            selectedModule = label
-                        }.padding(vertical = 11.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(icon, contentDescription = null, tint = Cyan, modifier = Modifier.size(21.dp))
-                        Text(label, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = Muted)
-                    }
-                    HorizontalDivider(color = Border)
-                }
-                TextButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Outlined.Logout, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Keluar")
-                }
-            }
-        }
-    }
-
-    if (showSearch) {
-        var query by remember { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { showSearch = false },
-            title = { Text("Pencarian Global") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        placeholder = { Text("Cari jemaat, keluarga, event...") }
-                    )
-                    Text("Pencarian lintas modul akan diaktifkan setelah endpoint pencarian web dipetakan.", fontSize = 11.sp, color = Muted)
-                }
-            },
-            confirmButton = { TextButton(onClick = { showSearch = false }) { Text("Tutup") } }
+fun DashboardScreen(role: Role, userName: String, padding: PaddingValues, onOpen: (String) -> Unit, vm: DashboardViewModel = hiltViewModel()) {
+    LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Dashboard) { d ->
+        val s = LocalStrings.current
+        val tiles = listOf(
+            Tile4(t("total-members"), d.totalMembers.toDouble(), false, Icons.Outlined.People, Color(0xFFFB923C), "members"),
+            Tile4(t("attendance-this-week"), d.attendanceWeek.toDouble(), false, Icons.Outlined.Checklist, Color(0xFF60A5FA), "attendance"),
+            Tile4(t("donations-this-month"), d.donationsMonth, true, Icons.Outlined.VolunteerActivism, Color(0xFF34D399), "donations"),
+            Tile4(t("active-events"), d.activeEvents.toDouble(), false, Icons.Outlined.CalendarMonth, Color(0xFFC084FC), "events"),
+            Tile4(t("total-groups"), d.totalGroups.toDouble(), false, Icons.Outlined.ViewInAr, Color(0xFFF87171), "groups"),
+            Tile4(t("active-volunteers"), d.activeVolunteers.toDouble(), false, Icons.Outlined.Handshake, Color(0xFFFBBF24), "volunteers"),
         )
+        val recentDonations = d.recentDonations.map {
+            MRow(it.donors?.nama ?: "-", "${it.tipe} · ${Format.date(it.tanggal, s.lang)}", Format.rupiahCompact(it.jumlah, s.lang), Tokens.Emerald400, true)
+        }
+        val upcomingEvents = d.upcomingEvents.map {
+            MRow(it.nama, it.lokasi ?: "", Format.date(it.startAt, s.lang), Tokens.Primary, false)
+        }
+        val recentActivity = d.activities.map {
+            MRow(it.action ?: "", it.detail ?: "", Format.timeAgo(it.createdAt, s.lang), Tokens.MutedForeground, false)
+        }
+
+        ModulePage(padding) {
+            item {
+                Column(Modifier.enterAnim(0)) {
+                    Text(t("dashboard"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("${t("welcome-back")}, $userName!", fontSize = 14.sp, color = Tokens.MutedForeground)
+                }
+            }
+            tiles.forEachIndexed { index, tile ->
+                item(key = "dashboard-stat-${tile.route}") {
+                    StatTile(tile, s.lang, Modifier.fillMaxWidth().enterAnim(delayMs = 70 + index * 45, dx = (-10).dp, dy = 14.dp, durationMs = 420)) {
+                        onOpen(tile.route)
+                    }
+                }
+            }
+            item {
+                DashboardListCard(t("recent-activity"), recentActivity, "reports", onOpen)
+            }
+            item {
+                DashboardListCard(t("upcoming-events"), upcomingEvents, "events", onOpen)
+            }
+            item {
+                ChartCard(t("attendance-stats"), Modifier.fillMaxWidth().enterAnim(delayMs = 120, dx = (-8).dp, dy = 10.dp)) {
+                    BarChartView(d.attendanceChart, Modifier.padding(top = 8.dp), 190.dp)
+                }
+            }
+            item {
+                ChartCard(t("member-distribution"), Modifier.fillMaxWidth().enterAnim(delayMs = 160, dx = (-8).dp, dy = 10.dp)) {
+                    DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 8.dp), 200.dp, centerLabel = t("members"))
+                }
+            }
+            item {
+                ChartCard(t("donation-trend"), Modifier.fillMaxWidth().enterAnim(delayMs = 200, dx = (-8).dp, dy = 10.dp), Icons.Outlined.TrendingUp) {
+                    LineChartView(
+                        d.donationTrend.map { Format.monthShort(it.first, s.lang) },
+                        listOf(Triple(t("donations"), d.donationTrend.map { it.second }, Tokens.Emerald400)),
+                        Modifier.padding(top = 8.dp), 190.dp, area = true,
+                    )
+                }
+            }
+            item {
+                DashboardListCard(t("recent-donations"), recentDonations, "donations", onOpen)
+            }
+        }
     }
 }
 
+private data class Tile4(val label: String, val value: Double, val rupiah: Boolean, val icon: ImageVector, val color: Color, val route: String)
+private data class MRow(val title: String, val sub: String, val right: String, val rightColor: Color, val bold: Boolean)
+
 @Composable
-private fun MetricCard(metric: DashboardMetric, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.heightIn(min = 94.dp),
-        color = Surface,
-        shape = RoundedCornerShape(13.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Border)
-    ) {
-        Column(
-            Modifier.padding(horizontal = 9.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp)
-        ) {
-            Box(
-                Modifier.size(27.dp).background(metric.tint.copy(alpha = .13f), RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(metric.icon, contentDescription = null, tint = metric.tint, modifier = Modifier.size(15.dp))
+private fun DashboardListCard(title: String, rows: List<MRow>, route: String, onOpen: (String) -> Unit) {
+    AppCard(Modifier.fillMaxWidth().enterAnim(dx = (-8).dp, dy = 10.dp)) {
+        Column(Modifier.padding(16.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(title, fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(t("view-all"), fontSize = 12.sp, color = Tokens.Primary, modifier = Modifier.clickable { onOpen(route) }.padding(4.dp))
             }
-            Text("—", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            Text(metric.label, fontSize = 9.sp, lineHeight = 11.sp, color = Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (rows.isEmpty()) {
+                Text(t("none"), fontSize = 14.sp, color = Tokens.MutedForeground, modifier = Modifier.padding(vertical = 12.dp))
+            } else {
+                rows.take(4).forEachIndexed { index, row ->
+                    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(row.title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            if (row.sub.isNotBlank()) Text(row.sub, fontSize = 12.sp, color = Tokens.MutedForeground, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        Text(row.right, fontSize = 12.sp, color = row.rightColor, fontWeight = if (row.bold) FontWeight.SemiBold else FontWeight.Normal)
+                    }
+                    if (index < minOf(rows.size, 4) - 1) Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = .1f)))
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun AnalyticsCard(title: String, subtitle: String, icon: ImageVector) {
-    Surface(
-        modifier = Modifier.width(260.dp).height(154.dp),
-        color = Surface,
-        shape = RoundedCornerShape(15.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Border)
-    ) {
-        Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                Icon(icon, contentDescription = null, tint = Cyan, modifier = Modifier.size(17.dp))
-                Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+private fun StatTile(tile: Tile4, lang: com.growthaxys.churchmanagements.core.Lang, modifier: Modifier, onClick: () -> Unit) {
+    val anim = remember { Animatable(0f) }
+    LaunchedEffect(tile.value) {
+        anim.snapTo(0f)
+        anim.animateTo(1f, tween(900, 250, androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    val value = tile.value * anim.value
+    val text = if (tile.rupiah) Format.rupiahCompact(Math.round(value).toDouble(), lang) else Math.round(value).toString()
+    AppCard(modifier.clickable(onClick = onClick)) {
+        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Box(Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(tile.color.copy(alpha = .1f)), contentAlignment = Alignment.Center) {
+                Icon(tile.icon, null, tint = tile.color, modifier = Modifier.size(24.dp))
             }
-            Text(subtitle, fontSize = 10.sp, color = Muted)
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Menunggu data analitik", fontSize = 10.sp, color = Muted)
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(text, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(tile.label, fontSize = 13.sp, color = Tokens.MutedForeground, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
     }
 }
 
 @Composable
-private fun ModuleComingSoon(title: String, onBack: () -> Unit) {
-    Column(
-        Modifier.fillMaxSize().background(Background).padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(Icons.Outlined.Construction, contentDescription = null, tint = Cyan, modifier = Modifier.size(38.dp))
-        Spacer(Modifier.height(12.dp))
-        Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text("Modul ini sedang dipetakan ke alur web agar fungsi, data, dan izin aksesnya sama persis.", color = Muted, fontSize = 12.sp)
-        Spacer(Modifier.height(16.dp))
-        OutlinedButton(onClick = onBack) { Text("Kembali ke Dashboard") }
+private fun ChartCard(title: String, modifier: Modifier = Modifier, icon: ImageVector? = null, content: @Composable ColumnScope.() -> Unit) = AppCard(modifier) {
+    Column(Modifier.padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (icon != null) Icon(icon, null, tint = Tokens.Emerald400, modifier = Modifier.size(16.dp))
+            Text(title, fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+        }
+        content()
     }
 }

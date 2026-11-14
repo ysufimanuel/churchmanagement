@@ -1,0 +1,5 @@
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.**
+-keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
+-keepclasseswithmembers class com.growthaxys.churchmanagements.data.model.** { kotlinx.serialization.KSerializer serializer(...); }
+-keep,includedescriptorclasses class com.growthaxys.churchmanagements.data.model.**$$serializer { *; }
