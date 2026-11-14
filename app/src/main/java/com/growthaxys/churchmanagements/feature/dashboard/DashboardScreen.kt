@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -147,7 +148,7 @@ private fun DashboardListCard(title: String, rows: List<MRow>, route: String, on
                         }
                         Text(row.right, fontSize = 12.sp, color = row.rightColor, fontWeight = if (row.bold) FontWeight.SemiBold else FontWeight.Normal)
                     }
-                    if (index < minOf(rows.size, 4) - 1) Box(Modifier.fillMaxWidth().padding(vertical = 1.dp).size(width = 1.dp, height = 1.dp).background(Color.White.copy(alpha = .1f)))
+                    if (index < minOf(rows.size, 4) - 1) Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = .1f)))
                 }
             }
         }
