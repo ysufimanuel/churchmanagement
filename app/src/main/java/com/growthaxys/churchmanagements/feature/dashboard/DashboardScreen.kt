@@ -131,7 +131,7 @@ private data class MRow(val title: String, val sub: String, val right: String, v
 
 @Composable
 private fun DashboardListCard(title: String, rows: List<MRow>, route: String, onOpen: (String) -> Unit) {
-    AppCard(Modifier.fillMaxWidth().enterAnim(dx = (-8).dp, dy = 10.dp))) {
+    AppCard(Modifier.fillMaxWidth().enterAnim(dx = (-8).dp, dy = 10.dp)) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(title, fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
