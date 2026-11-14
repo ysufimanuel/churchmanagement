@@ -51,6 +51,9 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -234,25 +237,33 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
                 },
         ) {
             val itemWidth = maxWidth / itemCount
+            val lensW = itemWidth - 6.dp
+            val lensTarget = itemWidth * selectedIndex + (itemWidth - lensW) / 2
             val settledOffset by androidx.compose.animation.core.animateDpAsState(
-                targetValue = itemWidth * selectedIndex + (itemWidth - 44.dp) / 2,
-                animationSpec = spring(dampingRatio = 0.78f, stiffness = 360f),
+                targetValue = lensTarget,
+                animationSpec = spring(dampingRatio = 0.72f, stiffness = 300f),
                 label = "nav-selection-indicator",
             )
             val density = LocalDensity.current
+            val dragging = dragX != null
             val indicatorOffset = dragX?.let { x ->
-                with(density) { x.toDp() - 22.dp }.coerceIn(0.dp, maxWidth - 44.dp)
+                with(density) { x.toDp() - lensW / 2 }.coerceIn(0.dp, maxWidth - lensW)
             } ?: settledOffset
             val activeIndex = dragIndex ?: selectedIndex
+            // Liquid stretch: the lens elongates while travelling and settles back, like iOS glass.
+            val travel = if (dragging) 0.35f else (kotlin.math.abs((lensTarget - settledOffset).value) / itemWidth.value).coerceIn(0f, 1f)
+            val lift by animateFloatAsState(if (dragging) 1.12f else 1f, spring(dampingRatio = 0.55f, stiffness = 420f), label = "nav-lens-lift")
 
-            // During a swipe, the shared bubble tracks the finger continuously.
-            Box(
+            GlassLens(
                 Modifier
                     .align(Alignment.CenterStart)
-                    .offset(x = indicatorOffset, y = (-7).dp)
-                    .size(44.dp)
-                    .background(Color.White.copy(alpha = 0.10f), CircleShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape),
+                    .offset(x = indicatorOffset)
+                    .width(lensW)
+                    .fillMaxHeight()
+                    .graphicsLayer {
+                        scaleX = lift * (1f + 0.16f * travel)
+                        scaleY = lift * (1f - 0.07f * travel)
+                    },
             )
 
             Row(
@@ -320,19 +331,11 @@ private fun NavItem(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            modifier = Modifier.size(22.dp).graphicsLayer {
+            modifier = Modifier.size(25.dp).graphicsLayer {
                 scaleX = iconScale
                 scaleY = iconScale
             },
             tint = iconTint,
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 9.sp,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-            color = labelTint,
-            maxLines = 1,
         )
     }
 }
@@ -383,5 +386,30 @@ fun LangSwitcher(lang: Lang, onLang: (Lang) -> Unit) {
                 modifier = Modifier.background(if (on) Tokens.Primary else Color.Transparent, CircleShape)
                     .clickable { onLang(l) }.padding(horizontal = 10.dp, vertical = 4.dp))
         }
+    }
+}
+
+
+/** Liquid-glass selection lens: translucent body, bright rim, top specular highlight, soft drop shadow. */
+@Composable
+private fun GlassLens(modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(26.dp)
+    Box(
+        modifier
+            .padding(vertical = 2.dp)
+            .shadow(12.dp, shape, ambientColor = Color.Black.copy(alpha = 0.35f), spotColor = Color.Black.copy(alpha = 0.35f))
+            .clip(shape)
+            .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.22f), Tokens.Primary.copy(alpha = 0.10f), Color.White.copy(alpha = 0.08f))))
+            .border(
+                1.2.dp,
+                androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color.White.copy(alpha = 0.60f), Color.White.copy(alpha = 0.06f), Color.White.copy(alpha = 0.32f))),
+                shape,
+            ),
+    ) {
+        Box(
+            Modifier.align(Alignment.TopCenter).padding(top = 3.dp).fillMaxWidth(0.72f).height(14.dp)
+                .clip(RoundedCornerShape(50))
+                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.30f), Color.Transparent))),
+        )
     }
 }
