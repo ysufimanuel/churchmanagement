@@ -8,4 +8,5 @@ captures/
 .cxx/
 *.jks
 *.keystore
+!app/debug.keystore
 google-services.json

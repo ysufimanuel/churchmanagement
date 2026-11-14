@@ -361,6 +361,7 @@ private fun MenuSheet(
                 LangSwitcher(lang, onLang)
             }
             Text(t("all-features").uppercase(), fontSize = 11.sp, color = Tokens.MutedForeground, letterSpacing = 1.sp)
+            Text("v${com.growthaxys.churchmanagements.BuildConfig.VERSION_NAME} · build ${com.growthaxys.churchmanagements.BuildConfig.VERSION_CODE}", fontSize = 10.sp, color = Tokens.MutedForeground)
             LazyVerticalGrid(GridCells.Fixed(3), Modifier.heightIn(max = 420.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(Destinations.forRole(role)) { d ->
                     Column(

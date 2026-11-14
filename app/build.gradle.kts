@@ -43,8 +43,11 @@ android {
         applicationId = "com.growthaxys.churchmanagements"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // CI run number makes every build installable over the previous one and visible in the app menu.
+        val runNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        val shortSha = System.getenv("GITHUB_SHA")?.take(7) ?: "local"
+        versionCode = runNumber
+        versionName = "0.1.0 ($shortSha)"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "SUPABASE_URL", quotedBuildConfig("SUPABASE_URL"))
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quotedBuildConfig("SUPABASE_PUBLISHABLE_KEY"))
@@ -53,6 +56,15 @@ android {
         buildConfigField("String", "WEB_BASE_URL", quotedOptional("WEB_BASE_URL", "https://getchurchly.vercel.app"))
         // Optional trusted endpoint that resolves username -> email (service role stays server-side).
         buildConfigField("String", "LOGIN_RESOLVER_URL", quotedOptional("LOGIN_RESOLVER_URL", ""))
+    }
+    signingConfigs {
+        // Fixed, non-secret debug key so each CI APK updates the installed one instead of failing on a signature mismatch.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
     buildFeatures { compose = true; buildConfig = true }
     compileOptions {
