@@ -26,7 +26,7 @@ class CommunicationRepository @Inject constructor(client: SupabaseClient, privat
 
     /* ---------- Contacts & chat ---------- */
     suspend fun contacts(): List<ProfileLite> =
-        table("profiles").select(raw("id, nama, role")) { filter { eq("status", "aktif") }; order("nama", ASC) }.decodeList()
+        table("profiles").select(raw("id, nama, role, avatar_url")) { filter { eq("status", "aktif") }; order("nama", ASC) }.decodeList()
 
     suspend fun messages(): List<Message> {
         val me = userId() ?: return emptyList()
