@@ -21,6 +21,7 @@ import com.growthaxys.churchmanagements.designsystem.AppBackground
 import com.growthaxys.churchmanagements.designsystem.ChurchTheme
 import com.growthaxys.churchmanagements.designsystem.LoadingBox
 import com.growthaxys.churchmanagements.feature.auth.LoginScreen
+import com.growthaxys.churchmanagements.feature.auth.RegisterScreen
 import com.growthaxys.churchmanagements.feature.common.LocalToaster
 import com.growthaxys.churchmanagements.feature.common.ToastHost
 import com.growthaxys.churchmanagements.feature.common.ToastMsg
@@ -46,6 +47,7 @@ private fun AppRoot(app: AppViewModel = hiltViewModel()) {
     val lang by app.lang.collectAsStateWithLifecycle()
     val strings = remember(lang) { Strings.load(ctx, lang) }
     var toast by remember { mutableStateOf<ToastMsg?>(null) }
+    var registerOpen by rememberSaveable { mutableStateOf(false) }
 
     CompositionLocalProvider(LocalStrings provides strings, LocalToaster provides { toast = it }) {
         ChurchTheme {
@@ -56,7 +58,7 @@ private fun AppRoot(app: AppViewModel = hiltViewModel()) {
                 else AppBackground {
                     when (val s = session) {
                         is SessionState.Loading -> LoadingBox()
-                        is SessionState.SignedOut -> LoginScreen(lang = lang, onLang = app::setLang)
+                        is SessionState.SignedOut -> if (registerOpen) RegisterScreen(onBack = { registerOpen = false }) else LoginScreen(lang = lang, onLang = app::setLang, onRegister = { registerOpen = true })
                         is SessionState.SignedIn -> MainShell(profile = s.profile, lang = lang, onLang = app::setLang, onLogout = app::logout)
                     }
                     ToastHost(toast) { toast = null }
