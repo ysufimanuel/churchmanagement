@@ -3,6 +3,16 @@
 package com.growthaxys.churchmanagements.feature.shell
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -171,13 +181,67 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
 
 @Composable
 private fun NavItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val containerColor by animateColorAsState(
+        targetValue = if (active) Tokens.Primary.copy(alpha = 0.16f) else Color.Transparent,
+        animationSpec = tween(240, easing = FastOutSlowInEasing),
+        label = "nav-container",
+    )
+    val iconScale by animateFloatAsState(
+        targetValue = when {
+            pressed -> 0.88f
+            active -> 1.10f
+            else -> 1f
+        },
+        animationSpec = spring(dampingRatio = 0.48f, stiffness = 520f),
+        label = "nav-icon-scale",
+    )
+    val indicatorWidth by androidx.compose.animation.core.animateDpAsState(
+        targetValue = if (active) 16.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.72f, stiffness = 420f),
+        label = "nav-indicator",
+    )
+
     Column(
-        modifier.heightIn(min = 52.dp).background(if (active) Tokens.Primary.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick).padding(vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+        modifier
+            .heightIn(min = 58.dp)
+            .background(containerColor, RoundedCornerShape(18.dp))
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onClick()
+                },
+            )
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Icon(icon, label, Modifier.size(22.dp), tint = if (active) Tokens.Primary else Tokens.MutedForeground)
-        Text(label, fontSize = 10.sp, fontWeight = FontWeight.Medium, color = if (active) Tokens.Primary else Tokens.MutedForeground, maxLines = 1)
+        Icon(
+            icon,
+            contentDescription = label,
+            modifier = Modifier.size(22.dp).graphicsLayer {
+                scaleX = iconScale
+                scaleY = iconScale
+            },
+            tint = if (active) Tokens.Primary else Tokens.MutedForeground,
+        )
+        Text(
+            label,
+            fontSize = 10.sp,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+            color = if (active) Tokens.Primary else Tokens.MutedForeground,
+            maxLines = 1,
+        )
+        Spacer(Modifier.height(3.dp))
+        Box(
+            Modifier
+                .size(width = indicatorWidth, height = 3.dp)
+                .background(if (active) Tokens.Primary else Color.Transparent, CircleShape),
+        )
     }
 }
 
