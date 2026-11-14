@@ -107,7 +107,7 @@ fun DashboardScreen(role: Role, userName: String, padding: PaddingValues, onOpen
             }
             item {
                 ChartCard(t("member-distribution"), Modifier.fillMaxWidth().enterAnim(delayMs = 160, dx = (-8).dp, dy = 10.dp)) {
-                    DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 8.dp), 200.dp, centerLabel = t("members"))
+                    DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 8.dp), 160.dp, centerLabel = t("members"))
                 }
             }
             item {
