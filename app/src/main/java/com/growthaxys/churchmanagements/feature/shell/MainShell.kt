@@ -193,10 +193,10 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .fillMaxWidth(),
         strong = true,
-        shape = RoundedCornerShape(32.dp),
+        shape = RoundedCornerShape(38.dp),
     ) {
         BoxWithConstraints(
-            Modifier.fillMaxWidth().padding(6.dp).height(68.dp)
+            Modifier.fillMaxWidth().padding(6.dp).height(70.dp)
                 .pointerInput(itemCount, hasWebManager, selectedIndex) {
                     fun indexAt(x: Float): Int {
                         val width = size.width.toFloat() / itemCount
@@ -299,12 +299,12 @@ private fun NavItem(
             active -> 1.08f
             else -> 1f
         },
-        animationSpec = spring(dampingRatio = 0.62f, stiffness = 520f),
+        animationSpec = spring(dampingRatio = 0.78f, stiffness = 360f),
         label = "nav-icon-scale",
     )
     val iconTint by animateColorAsState(
         targetValue = if (active) Tokens.Primary else Tokens.MutedForeground,
-        animationSpec = tween(220, easing = FastOutSlowInEasing),
+        animationSpec = tween(280, easing = FastOutSlowInEasing),
         label = "nav-icon-tint",
     )
     val labelTint by animateColorAsState(
