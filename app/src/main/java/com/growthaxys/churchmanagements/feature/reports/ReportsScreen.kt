@@ -67,7 +67,7 @@ class ReportsViewModel @Inject constructor(
 fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()) {
     LoadGate(vm, padding, com.growthaxys.churchmanagements.designsystem.SkeletonKind.Cards) { d ->
         val s = LocalStrings.current
-        val memberGender = d.members.groupingBy { it.jk?.takeIf(String::isNotBlank) ?: t("other") }
+        val memberGender = d.members.groupingBy { it.jk?.takeIf(String::isNotBlank) ?: s.t("other") }
             .eachCount().map { it.key to it.value.toDouble() }
         val attendanceByMonth = d.attendance.groupingBy { it.tanggal.take(7) }
             .eachCount().toSortedMap().toList().takeLast(6).map { it.first to it.second }
@@ -117,10 +117,10 @@ fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()
                     }
                 }) {
                     listOf(
-                        mapOf("Metrik" to t("total-members"), "Nilai" to d.members.size),
-                        mapOf("Metrik" to t("active-events"), "Nilai" to d.eventCount),
-                        mapOf("Metrik" to t("attendance-this-week"), "Nilai" to d.attendance.size),
-                        mapOf("Metrik" to t("donations"), "Nilai" to d.donations.sumOf { it.jumlah }),
+                        mapOf("Metrik" to s.t("total-members"), "Nilai" to d.members.size),
+                        mapOf("Metrik" to s.t("active-events"), "Nilai" to d.eventCount),
+                        mapOf("Metrik" to s.t("attendance-this-week"), "Nilai" to d.attendance.size),
+                        mapOf("Metrik" to s.t("donations"), "Nilai" to d.donations.sumOf { it.jumlah }),
                     )
                 }
             }
