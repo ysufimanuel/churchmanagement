@@ -10,6 +10,11 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.offset
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
@@ -457,22 +462,59 @@ data class TabItem(val id: String, val label: String)
 
 @Composable
 fun AppTabs(tabs: List<TabItem>, active: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    Row(
+    val scroll = rememberScrollState()
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val spots = remember { androidx.compose.runtime.mutableStateMapOf<String, FloatArray>() } // x, width, height (px)
+    var viewport by remember { mutableStateOf(0) }
+    val target = spots[active]
+    val pillX = remember { androidx.compose.animation.core.Animatable(0f) }
+    val pillW = remember { androidx.compose.animation.core.Animatable(0f) }
+    var placed by remember { mutableStateOf(false) }
+    // Same motion language as the bottom-nav lens: spring slide, stretches while travelling.
+    androidx.compose.runtime.LaunchedEffect(target?.get(0), target?.get(1)) {
+        val t = target ?: return@LaunchedEffect
+        if (!placed) { pillX.snapTo(t[0]); pillW.snapTo(t[1]); placed = true }
+        else kotlinx.coroutines.coroutineScope {
+            launch { pillX.animateTo(t[0], androidx.compose.animation.core.spring(0.74f, 320f)) }
+            launch { pillW.animateTo(t[1], androidx.compose.animation.core.spring(0.82f, 340f)) }
+        }
+    }
+    androidx.compose.runtime.LaunchedEffect(target?.get(0), viewport) {
+        val t = target ?: return@LaunchedEffect
+        if (viewport > 0) scroll.animateScrollTo((t[0] + t[1] / 2 - viewport / 2f).toInt().coerceAtLeast(0))
+    }
+    Box(
         modifier.fillMaxWidth().clip(Tokens.ControlShape).background(Color(0x0AFFFFFF))
             .border(1.dp, Tokens.BorderSubtle, Tokens.ControlShape)
-            .horizontalScroll(rememberScrollState()).padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .onSizeChanged { viewport = it.width },
     ) {
-        tabs.forEach { tab ->
-            val on = tab.id == active
-            Text(
-                tab.label, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1,
-                color = if (on) Tokens.OnPrimary else Tokens.MutedForeground,
-                modifier = Modifier.clip(Tokens.ChipShape)
-                    .background(if (on) Tokens.Primary else Color.Transparent)
-                    .clickable { onChange(tab.id) }
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-            )
+        Box(Modifier.horizontalScroll(scroll).padding(3.dp)) {
+            if (placed && target != null) {
+                val travel = (kotlin.math.abs(pillX.value - target[0]) / target[1].coerceAtLeast(1f)).coerceIn(0f, 1f)
+                Box(
+                    Modifier
+                        .offset { androidx.compose.ui.unit.IntOffset(pillX.value.toInt(), 0) }
+                        .size(with(density) { pillW.value.toDp() }, with(density) { target[2].toDp() })
+                        .graphicsLayer { scaleX = 1f + 0.14f * travel; scaleY = 1f - 0.06f * travel }
+                        .clip(Tokens.ChipShape).background(Tokens.Primary),
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                tabs.forEach { tab ->
+                    val on = tab.id == active
+                    val tint by androidx.compose.animation.animateColorAsState(
+                        if (on) Tokens.OnPrimary else Tokens.MutedForeground, androidx.compose.animation.core.tween(200), label = "tab-tint",
+                    )
+                    Text(
+                        tab.label, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, color = tint,
+                        modifier = Modifier
+                            .onGloballyPositioned { spots[tab.id] = floatArrayOf(it.positionInParent().x, it.size.width.toFloat(), it.size.height.toFloat()) }
+                            .clip(Tokens.ChipShape)
+                            .clickable { onChange(tab.id) }
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                    )
+                }
+            }
         }
     }
 }
@@ -522,8 +564,8 @@ fun DialogActions(onCancel: () -> Unit, onSave: () -> Unit, saving: Boolean = fa
 @Composable
 fun PageHeader(title: String, subtitle: String? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
-        if (subtitle != null) Text(subtitle, fontSize = 14.sp, color = Tokens.MutedForeground)
+        Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        if (subtitle != null) Text(subtitle, fontSize = 12.sp, color = Tokens.MutedForeground, maxLines = 1)
     }
 }
 
@@ -568,23 +610,23 @@ fun DataRowCard(
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     Glass(modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 leading?.invoke()
                 Text(title, fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 14.sp, modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (actions != null) Row(horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically, content = actions)
             }
             fields.chunked(2).forEach { pair ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     pair.forEach { (label, value) ->
                         Column(Modifier.weight(1f)) {
-                            Text(label.uppercase(), fontSize = 10.sp, color = Tokens.MutedForeground, letterSpacing = 0.5.sp)
+                            Text(label.uppercase(), fontSize = 9.sp, lineHeight = 11.sp, color = Tokens.MutedForeground, letterSpacing = 0.5.sp)
                             value()
                         }
                     }
                     if (pair.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
-            if (actions != null) Row(horizontalArrangement = Arrangement.spacedBy(4.dp), content = actions)
         }
     }
 }
@@ -596,4 +638,4 @@ fun FieldText(text: String?, color: Color = Color.White) =
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterRow(modifier: Modifier = Modifier, content: @Composable () -> Unit) =
-    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
+    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) { content() }

@@ -36,14 +36,14 @@ import com.growthaxys.churchmanagements.designsystem.Tokens
 /** Standard module page: LazyColumn with the shell's content padding and 16dp rhythm (web `space-y-4`). */
 @Composable
 fun ModulePage(padding: PaddingValues, content: LazyListScope.() -> Unit) =
-    LazyColumn(Modifier.fillMaxWidth(), contentPadding = padding, verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
+    LazyColumn(Modifier.fillMaxWidth(), contentPadding = padding, verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
 
 @Composable
 fun StatCard(label: String, value: String, modifier: Modifier = Modifier, valueColor: Color = Color.White) {
     AppCard(modifier) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(label, fontSize = 12.sp, color = Tokens.MutedForeground, maxLines = 1)
-            Text(value, fontSize = 20.sp, color = valueColor, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, maxLines = 1)
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            Text(label, fontSize = 11.sp, color = Tokens.MutedForeground, maxLines = 1)
+            Text(value, fontSize = 18.sp, color = valueColor, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, maxLines = 1)
         }
     }
 }
