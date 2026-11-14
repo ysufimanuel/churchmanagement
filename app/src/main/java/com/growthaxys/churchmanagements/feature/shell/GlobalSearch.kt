@@ -29,6 +29,7 @@ import com.growthaxys.churchmanagements.data.repo.SearchRepository
 import com.growthaxys.churchmanagements.designsystem.AppDialog
 import com.growthaxys.churchmanagements.designsystem.SearchField
 import com.growthaxys.churchmanagements.designsystem.Tokens
+import com.growthaxys.churchmanagements.designsystem.enterAnim
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
