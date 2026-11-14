@@ -19,7 +19,12 @@ data class Profile(
 )
 
 @Serializable
-data class ProfileLite(val id: String, val nama: String = "", val role: String = "user")
+data class ProfileLite(
+    val id: String,
+    val nama: String = "",
+    val role: String = "user",
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+)
 
 @Serializable
 data class Member(
