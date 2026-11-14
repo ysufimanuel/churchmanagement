@@ -114,7 +114,7 @@ fun CommunicationScreen(profile: Profile?, role: Role, padding: PaddingValues, i
                         val unread = data.messages.count { it.senderId == c.id && it.receiverId == me && !it.read }
                         AppCard(Modifier.clickable { active = c.id }) {
                             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                InitialsAvatar(c.nama)
+                                InitialsAvatar(c.nama, imageUrl = c.avatarUrl)
                                 Column(Modifier.weight(1f)) {
                                     Text(c.nama, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                                     Text(Rbac.roleLabel(Role.from(c.role)), color = Tokens.MutedForeground, fontSize = 12.sp)
@@ -134,7 +134,8 @@ fun CommunicationScreen(profile: Profile?, role: Role, padding: PaddingValues, i
                     if (thread.isEmpty()) item { EmptyText(t("select-contact")) }
                     items(thread, key = { it.id }) { m ->
                         val mine = m.senderId == me
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start) {
+                            if (!mine) InitialsAvatar(nameOf(m.senderId), size = 30.dp, imageUrl = data.contacts.firstOrNull { it.id == m.senderId }?.avatarUrl)
                             Column(
                                 Modifier.widthIn(max = 280.dp).background(if (mine) Tokens.Primary else Tokens.Card, RoundedCornerShape(14.dp)).padding(horizontal = 12.dp, vertical = 8.dp),
                             ) {
