@@ -10,6 +10,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.animateContentSize
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -600,7 +602,13 @@ fun InitialsAvatar(name: String?, modifier: Modifier = Modifier, size: Dp = 36.d
     }
 }
 
-/** Mobile "table → compact card" (web `.table-cards`): first field bold full width, others in a 2-col grid. */
+/**
+ * Mobile "table → compact card": title + inline label/value pairs that wrap (several per line).
+ * Only the first [COLLAPSED_FIELDS] fields show until the card is expanded, so long lists stay short.
+ */
+private const val COLLAPSED_FIELDS = 3
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DataRowCard(
     title: String,
@@ -609,22 +617,28 @@ fun DataRowCard(
     leading: (@Composable () -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    Glass(modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    var expanded by remember { mutableStateOf(false) }
+    val collapsible = fields.size > COLLAPSED_FIELDS + 1
+    val shown = if (!collapsible || expanded) fields else fields.take(COLLAPSED_FIELDS)
+    Glass(modifier.fillMaxWidth().animateContentSize(androidx.compose.animation.core.spring(0.85f, 500f)), shape = RoundedCornerShape(12.dp)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 leading?.invoke()
                 Text(title, fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 14.sp, modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (actions != null) Row(horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically, content = actions)
-            }
-            fields.chunked(2).forEach { pair ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    pair.forEach { (label, value) ->
-                        Column(Modifier.weight(1f)) {
-                            Text(label.uppercase(), fontSize = 9.sp, lineHeight = 11.sp, color = Tokens.MutedForeground, letterSpacing = 0.5.sp)
-                            value()
-                        }
+                if (collapsible) {
+                    val rot by androidx.compose.animation.core.animateFloatAsState(if (expanded) 180f else 0f, androidx.compose.animation.core.spring(0.8f, 500f), label = "row-chevron")
+                    Box(Modifier.size(32.dp).clip(CircleShape).clickable { expanded = !expanded }, contentAlignment = Alignment.Center) {
+                        Icon(Icons.Outlined.ExpandMore, null, Modifier.size(20.dp).graphicsLayer { rotationZ = rot }, tint = Tokens.MutedForeground)
                     }
-                    if (pair.size == 1) Spacer(Modifier.weight(1f))
+                }
+            }
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                shown.forEach { (label, value) ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text(label.uppercase(), fontSize = 9.sp, lineHeight = 11.sp, color = Tokens.MutedForeground, letterSpacing = 0.4.sp)
+                        value()
+                    }
                 }
             }
         }
