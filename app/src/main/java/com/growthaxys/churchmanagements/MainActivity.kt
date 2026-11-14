@@ -48,6 +48,7 @@ private fun AppRoot(app: AppViewModel = hiltViewModel()) {
     val strings = remember(lang) { Strings.load(ctx, lang) }
     var toast by remember { mutableStateOf<ToastMsg?>(null) }
     var registerOpen by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(session) { if (session is SessionState.SignedIn) registerOpen = false }
 
     CompositionLocalProvider(LocalStrings provides strings, LocalToaster provides { toast = it }) {
         ChurchTheme {
