@@ -140,7 +140,7 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
                                 "volunteers" -> VolunteersScreen(role, pad, q)
                                 "communication" -> CommunicationScreen(profile, role, pad, q)
                                 "reports" -> ReportsScreen(pad)
-                                "users" -> if (Rbac.canManageUsers(role)) UsersScreen(pad)
+                                "users" -> if (Rbac.canManageUsers(role)) UsersScreen(pad, profile.id)
                                 "web-manager" -> if (Rbac.canUseWebManager(role)) com.growthaxys.churchmanagements.feature.webmanager.WebManagerScreen(role, pad)
                             }
                         }
