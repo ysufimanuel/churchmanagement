@@ -74,11 +74,13 @@ fun GlobalSearchDialog(role: Role, onClose: () -> Unit, onOpen: (route: String, 
             outcome != null && outcome.hits.isEmpty() && featureHits.isEmpty() ->
                 Text(if (outcome.failed) t("search-failed") else t("no-results"), color = Tokens.MutedForeground, fontSize = 13.sp)
         }
-        if (featureHits.isNotEmpty()) Group(t("all-features")) {
-            featureHits.forEach { d -> HitRow(t(d.key), null) { onOpen(d.route, null) } }
+        if (featureHits.isNotEmpty()) Group(t("all-features"), 0) {
+            featureHits.forEachIndexed { index, d -> HitRow(t(d.key), null, index) { onOpen(d.route, null) } }
         }
-        outcome?.hits?.groupBy { it.group }?.forEach { (g, hits) ->
-            Group(groupLabel(g)) { hits.forEach { h -> HitRow(h.title, h.subtitle) { onOpen(h.route, h.query) } } }
+        outcome?.hits?.groupBy { it.group }?.entries?.forEachIndexed { groupIndex, (g, hits) ->
+            Group(groupLabel(g), 80 + groupIndex * 70) {
+                hits.forEachIndexed { index, h -> HitRow(h.title, h.subtitle, index) { onOpen(h.route, h.query) } }
+            }
         }
     }
 }
@@ -91,16 +93,16 @@ private fun groupLabel(g: String): String = when (g) {
 }
 
 @Composable
-private fun Group(title: String, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+private fun Group(title: String, delayMs: Int = 0, content: @Composable () -> Unit) {
+    Column(Modifier.enterAnim(delayMs = delayMs, dx = (-12).dp, dy = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(title.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color(0x80FFFFFF), letterSpacing = 1.sp)
         content()
     }
 }
 
 @Composable
-private fun HitRow(title: String, subtitle: String?, onClick: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp)) {
+private fun HitRow(title: String, subtitle: String?, index: Int = 0, onClick: () -> Unit) {
+    Column(Modifier.fillMaxWidth().enterAnim(delayMs = 30 + index * 28, dx = (-8).dp, dy = 5.dp).clickable(onClick = onClick).padding(vertical = 8.dp)) {
         Text(title, fontSize = 14.sp, color = Color.White, maxLines = 1)
         if (!subtitle.isNullOrBlank()) Text(subtitle, fontSize = 12.sp, color = Tokens.MutedForeground, maxLines = 1)
     }
