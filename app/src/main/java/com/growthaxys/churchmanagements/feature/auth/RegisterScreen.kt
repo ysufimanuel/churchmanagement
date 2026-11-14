@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.growthaxys.churchmanagements.data.repo.AuthRepository
 import com.growthaxys.churchmanagements.data.repo.MobileAdminRepository
 import com.growthaxys.churchmanagements.designsystem.AppButton
 import com.growthaxys.churchmanagements.designsystem.AppTextField
@@ -52,7 +53,7 @@ import javax.inject.Inject
 data class RegisterUiState(val loading: Boolean = false, val error: String? = null, val success: Boolean = false)
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor(private val api: MobileAdminRepository) : ViewModel() {
+class RegisterViewModel @Inject constructor(private val api: MobileAdminRepository, private val auth: AuthRepository) : ViewModel() {
     private val _ui = MutableStateFlow(RegisterUiState())
     val ui: StateFlow<RegisterUiState> = _ui.asStateFlow()
 
@@ -67,7 +68,13 @@ class RegisterViewModel @Inject constructor(private val api: MobileAdminReposito
         _ui.value = RegisterUiState(loading = true)
         viewModelScope.launch {
             val result = api.registerChurch(churchName, address, city, phone, churchEmail, adminName, username, email, password)
-            _ui.value = if (result.ok) RegisterUiState(success = true) else RegisterUiState(error = result.error ?: "Registrasi gagal.")
+            if (result.ok) {
+                // Match the web registration flow: create the tenant, then sign the new Superadmin in.
+                runCatching { auth.signIn(email.trim(), password) }
+                _ui.value = RegisterUiState(success = true)
+            } else {
+                _ui.value = RegisterUiState(error = result.error ?: "Registrasi gagal.")
+            }
         }
     }
 }
