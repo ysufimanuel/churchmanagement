@@ -127,30 +127,30 @@ fun LoginScreen(lang: Lang, onLang: (Lang) -> Unit, onRegister: () -> Unit, vm: 
         ) {
             Column(
                 Modifier.widthIn(max = 420.dp).fillMaxWidth()
-                    .enterAnim(0, 24.dp, 700, fromScale = 0.97f)
+                    .enterAnim(delayMs = 0, dy = 24.dp, durationMs = 700, fromScale = 0.97f)
                     .graphicsLayer { translationX = shake.value.dp.toPx() }
                     .background(Color(0x0EFFFFFF), RoundedCornerShape(28.dp))
                     .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(28.dp)).padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(
-                    Modifier.enterAnim(350, 0.dp, 550, fromScale = 0.7f, fromRotate = -12f, easing = EaseBackOut)
+                    Modifier.enterAnim(delayMs = 350, dy = 0.dp, durationMs = 550, fromScale = 0.7f, fromRotate = -12f, easing = EaseBackOut)
                         .size(56.dp).background(Color(0x1A22D3EE), RoundedCornerShape(16.dp))
                         .border(1.dp, Color(0x4022D3EE), RoundedCornerShape(16.dp))
                         .clickable(enabled = BuildConfig.DEBUG) { demo = true },
                     contentAlignment = Alignment.Center,
                 ) { Icon(Icons.Outlined.Church, null, Modifier.size(28.dp), tint = Color(0xFF67E8F9)) }
                 Spacer(Modifier.height(20.dp))
-                Text("FLOCKLY", Modifier.enterAnim(650, 12.dp, 400), fontSize = 10.sp, letterSpacing = 2.4.sp, fontWeight = FontWeight.SemiBold, color = Color(0xCC67E8F9))
+                Text("FLOCKLY", Modifier.enterAnim(delayMs = 650, dy = 12.dp, durationMs = 400), fontSize = 10.sp, letterSpacing = 2.4.sp, fontWeight = FontWeight.SemiBold, color = Color(0xCC67E8F9))
                 Spacer(Modifier.height(6.dp))
-                Text(t("app-title"), Modifier.enterAnim(740, 12.dp, 400), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
+                Text(t("app-title"), Modifier.enterAnim(delayMs = 740, dy = 12.dp, durationMs = 400), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(6.dp))
-                Text(t("created-by"), Modifier.enterAnim(830, 12.dp, 400), fontSize = 12.sp, color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
+                Text(t("created-by"), Modifier.enterAnim(delayMs = 830, dy = 12.dp, durationMs = 400), fontSize = 12.sp, color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
                 Spacer(Modifier.height(28.dp))
 
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    LabeledField(t("username"), Modifier.enterAnim(1000, 14.dp, 400)) { AppTextField(username, { username = it }, placeholder = t("username-placeholder"), minHeight = 48.dp) }
-                    LabeledField(t("password"), Modifier.enterAnim(1070, 14.dp, 400)) {
+                    LabeledField(t("username"), Modifier.enterAnim(delayMs = 1000, dy = 14.dp, durationMs = 400)) { AppTextField(username, { username = it }, placeholder = t("username-placeholder"), minHeight = 48.dp) }
+                    LabeledField(t("password"), Modifier.enterAnim(delayMs = 1070, dy = 14.dp, durationMs = 400)) {
                         AppTextField(password, { password = it }, placeholder = t("password-placeholder"), minHeight = 48.dp, password = !show,
                             trailing = {
                                 AppIconButton(if (show) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
@@ -158,7 +158,7 @@ fun LoginScreen(lang: Lang, onLang: (Lang) -> Unit, onRegister: () -> Unit, vm: 
                             })
                     }
                     // Web renders "Forgot password?" as inert text (no handler) — kept identical for parity.
-                    Row(Modifier.fillMaxWidth().enterAnim(1140, 14.dp, 400), horizontalArrangement = Arrangement.End) {
+                    Row(Modifier.fillMaxWidth().enterAnim(delayMs = 1140, dy = 14.dp, durationMs = 400), horizontalArrangement = Arrangement.End) {
                         Text(t("forgot-password"), fontSize = 12.sp, color = Color(0xE667E8F9))
                     }
                     ui.error?.let { e ->
@@ -166,15 +166,15 @@ fun LoginScreen(lang: Lang, onLang: (Lang) -> Unit, onRegister: () -> Unit, vm: 
                             LoginError.Required -> "login-required"; LoginError.Invalid -> "login-invalid"
                             LoginError.UsernameUnconfigured -> "login-username-unconfigured"; LoginError.Unavailable -> "login-unavailable"
                         }
-                        Text(t(key), Modifier.fillMaxWidth().enterAnim(0, (-5).dp, 250).background(Color(0x1AEF4444), RoundedCornerShape(12.dp))
+                        Text(t(key), Modifier.fillMaxWidth().enterAnim(delayMs = 0, dy = (-5).dp, durationMs = 250).background(Color(0x1AEF4444), RoundedCornerShape(12.dp))
                             .border(1.dp, Color(0x33F87171), RoundedCornerShape(12.dp)).padding(14.dp),
                             fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFFFCA5A5), textAlign = TextAlign.Center)
                     }
                     AppButton(if (ui.loading) t("loading") else t("login"), { vm.submit(username, password) },
-                        Modifier.fillMaxWidth().enterAnim(1210, 14.dp, 400), icon = Icons.Outlined.Login, loading = ui.loading, height = 48.dp)
+                        Modifier.fillMaxWidth().enterAnim(delayMs = 1210, dy = 14.dp, durationMs = 400), icon = Icons.Outlined.Login, loading = ui.loading, height = 48.dp)
                 }
                 Spacer(Modifier.height(24.dp))
-                Row(Modifier.enterAnim(1400, 8.dp, 350), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.enterAnim(delayMs = 1400, dy = 8.dp, durationMs = 350), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(t("no-church-account"), fontSize = 12.sp, color = Color(0xFF94A3B8))
                     Row(
                         Modifier.clickable(onClick = onRegister),
@@ -185,7 +185,7 @@ fun LoginScreen(lang: Lang, onLang: (Lang) -> Unit, onRegister: () -> Unit, vm: 
                     }
                 }
                 Spacer(Modifier.height(16.dp))
-                Box(Modifier.enterAnim(1480, 8.dp, 350)) { LangSwitcher(lang, onLang) }
+                Box(Modifier.enterAnim(delayMs = 1480, dy = 8.dp, durationMs = 350)) { LangSwitcher(lang, onLang) }
             }
         }
     }
