@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.growthaxys.churchmanagements.core.Format
 import com.growthaxys.churchmanagements.core.LocalStrings
 import com.growthaxys.churchmanagements.core.t
 import com.growthaxys.churchmanagements.data.model.Attendance
