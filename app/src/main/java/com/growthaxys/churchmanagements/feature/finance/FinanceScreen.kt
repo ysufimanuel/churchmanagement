@@ -148,8 +148,6 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
                             }
                         }
                     }
-                        }
-                    }
                 }
 
                 "pemasukan", "pengeluaran" -> {
