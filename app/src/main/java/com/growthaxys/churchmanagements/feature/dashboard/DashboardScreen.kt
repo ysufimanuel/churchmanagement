@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyRow
@@ -115,18 +117,18 @@ fun DashboardScreen(role: Role, userName: String, padding: PaddingValues, onOpen
                     horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth(),
                 ) {
                     item {
-                        ChartCard(t("attendance-stats"), Modifier.fillParentMaxWidth(0.88f)) {
-                            BarChartView(d.attendanceChart, Modifier.padding(top = 8.dp), 140.dp)
+                        ChartCard(t("attendance-stats"), Modifier.fillParentMaxWidth(0.88f).height(206.dp)) {
+                            BarChartView(d.attendanceChart, Modifier.padding(top = 8.dp), 124.dp)
                         }
                     }
                     item {
-                        ChartCard(t("donation-trend"), Modifier.fillParentMaxWidth(0.88f), Icons.Outlined.TrendingUp) {
-                            LineChartView(d.donationTrend.map { Format.monthShort(it.first, s.lang) }, listOf(Triple(t("donations"), d.donationTrend.map { it.second }, Tokens.Emerald400)), Modifier.padding(top = 8.dp), 140.dp, area = true)
+                        ChartCard(t("donation-trend"), Modifier.fillParentMaxWidth(0.88f).height(206.dp), Icons.Outlined.TrendingUp) {
+                            LineChartView(d.donationTrend.map { Format.monthShort(it.first, s.lang) }, listOf(Triple(t("donations"), d.donationTrend.map { it.second }, Tokens.Emerald400)), Modifier.padding(top = 8.dp), 124.dp, area = true)
                         }
                     }
                     item {
-                        ChartCard(t("member-distribution"), Modifier.fillParentMaxWidth(0.88f)) {
-                            DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 8.dp), 160.dp, centerLabel = t("members"))
+                        ChartCard(t("member-distribution"), Modifier.fillParentMaxWidth(0.88f).height(206.dp)) {
+                            DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 8.dp), 112.dp, centerLabel = t("members"))
                         }
                     }
                 }
@@ -135,13 +137,14 @@ fun DashboardScreen(role: Role, userName: String, padding: PaddingValues, onOpen
                 var active by remember { mutableStateOf(0) }
                 val tab = tabs[active]
                 AppCard(Modifier.enterAnim(delayMs = 300)) {
-                    Row(Modifier.horizontalScroll(rememberScrollState()).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(6.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         tabs.forEachIndexed { i, x ->
                             Box(
-                                Modifier.clip(RoundedCornerShape(8.dp))
+                                Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
                                     .background(if (active == i) Tokens.Primary.copy(alpha = .2f) else Color.Transparent)
-                                    .clickable { active = i }.padding(horizontal = 12.dp, vertical = 10.dp),
-                            ) { Text(x.label, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = if (active == i) Tokens.Primary else Tokens.MutedForeground) }
+                                    .clickable { active = i }.padding(horizontal = 4.dp, vertical = 9.dp),
+                                contentAlignment = Alignment.Center,
+                            ) { Text(x.label, fontSize = 12.sp, maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontWeight = FontWeight.Medium, color = if (active == i) Tokens.Primary else Tokens.MutedForeground) }
                         }
                     }
                     Column(Modifier.padding(start = 12.dp, end = 12.dp, bottom = 4.dp)) {
@@ -156,7 +159,7 @@ fun DashboardScreen(role: Role, userName: String, padding: PaddingValues, onOpen
                             }
                             if (i < minOf(tab.rows.size, 3) - 1) Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = .1f)))
                         }
-                        Text(t("view-all"), fontSize = 14.sp, color = Tokens.Primary, modifier = Modifier.clickable { onOpen(tab.route) }.padding(vertical = 12.dp))
+                        Text(t("view-all"), fontSize = 13.sp, color = Tokens.Primary, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().clickable { onOpen(tab.route) }.padding(vertical = 10.dp))
                     }
                 }
             }
@@ -175,7 +178,7 @@ private fun StatTile(t: Tile4, lang: com.growthaxys.churchmanagements.core.Lang,
     val v = t.value * anim.value
     val text = if (t.rupiah) Format.rupiahCompact(Math.round(v).toDouble(), lang) else Math.round(v).toString()
     AppCard(modifier.clickable(onClick = onClick)) {
-        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.fillMaxWidth().heightIn(min = 92.dp).padding(10.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Box(Modifier.size(28.dp).clip(RoundedCornerShape(8.dp)).background(t.color.copy(alpha = .1f)), contentAlignment = Alignment.Center) {
                 Icon(t.icon, null, tint = t.color, modifier = Modifier.size(16.dp))
             }
@@ -189,11 +192,11 @@ private fun StatTile(t: Tile4, lang: com.growthaxys.churchmanagements.core.Lang,
 
 @Composable
 private fun ChartCard(title: String, modifier: Modifier = Modifier, icon: ImageVector? = null, content: @Composable ColumnScope.() -> Unit) = AppCard(modifier) {
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.fillMaxSize().padding(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (icon != null) Icon(icon, null, tint = Tokens.Emerald400, modifier = Modifier.size(16.dp))
             Text(title, fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
         }
-        content()
+        Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.Center) { content() }
     }
 }

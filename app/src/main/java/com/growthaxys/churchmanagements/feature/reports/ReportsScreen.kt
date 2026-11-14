@@ -143,7 +143,7 @@ private fun ReportCard(
     var expanded by remember(title) { mutableStateOf(false) }
     AppCard {
         Row(
-            Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(16.dp),
+            Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {

@@ -105,7 +105,7 @@ fun VolunteersScreen(role: Role, padding: PaddingValues, initialQuery: String, v
                 "schedule" -> items(SCHEDULES) { sch ->
                     val list = filtered.filter { sch in it.jadwal }
                     AppCard {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(t(scheduleKey(sch)), fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
                             if (list.isEmpty()) EmptyText()
                             list.forEach { v ->

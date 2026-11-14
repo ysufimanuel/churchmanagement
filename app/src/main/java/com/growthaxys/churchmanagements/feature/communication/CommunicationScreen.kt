@@ -95,7 +95,7 @@ fun CommunicationScreen(profile: Profile?, role: Role, padding: PaddingValues, i
             when (tab) {
                 "broadcast" -> item {
                     AppCard {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             LabeledField(t("recipients")) { AppSelect("all", listOf(Option("all", t("all-members"))), {}) }
                             LabeledField(t("subject")) { AppTextField(subject, { subject = it }) }
                             LabeledField(t("message")) { AppTextField(body, { body = it }, singleLine = false, minHeight = 140.dp) }

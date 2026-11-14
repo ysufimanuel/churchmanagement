@@ -67,7 +67,7 @@ fun AttendanceScreen(role: Role, padding: PaddingValues, vm: AttendanceViewModel
             when (tab) {
                 "checkin" -> item {
                     AppCard {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             Text(t("checkin-attendance"), fontSize = 16.sp, color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
                             LabeledField(t("select-event")) {
                                 AppSelect(eventId, data.events.filter { it.status != "completed" }.map { Option(it.id.toString(), it.nama) }, { eventId = it }, placeholder = t("select"))
@@ -112,7 +112,7 @@ fun AttendanceScreen(role: Role, padding: PaddingValues, vm: AttendanceViewModel
                             StatCard(t("top-event"), topEvent, Modifier.weight(1.4f))
                         }
                     }
-                    item { AppCard { Column(Modifier.padding(16.dp)) { Text(t("attendance-stats"), fontSize = 16.sp, color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold); BarChartView(perDate, Modifier.padding(top = 12.dp), 220.dp) } } }
+                    item { AppCard { Column(Modifier.padding(12.dp)) { Text(t("attendance-stats"), fontSize = 16.sp, color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold); BarChartView(perDate, Modifier.padding(top = 12.dp), 220.dp) } } }
                 }
             }
         }

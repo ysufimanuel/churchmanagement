@@ -151,12 +151,12 @@ fun AppCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -
 
 @Composable
 fun CardHeaderRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) =
-    Row(modifier.fillMaxWidth().padding(16.dp, 16.dp, 16.dp, 8.dp), verticalAlignment = Alignment.Top,
+    Row(modifier.fillMaxWidth().padding(12.dp, 12.dp, 12.dp, 4.dp), verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceBetween, content = content)
 
 @Composable
 fun CardBody(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) =
-    Column(modifier.fillMaxWidth().padding(16.dp, 0.dp, 16.dp, 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
+    Column(modifier.fillMaxWidth().padding(12.dp, 0.dp, 12.dp, 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp), content = content)
 
 /* ---------- Buttons (web Button: h-10 rounded-lg text-sm font-medium) ---------- */
 enum class BtnVariant { Default, Secondary, Destructive, Outline, Ghost }

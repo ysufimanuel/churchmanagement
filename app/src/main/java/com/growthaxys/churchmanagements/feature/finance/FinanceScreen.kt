@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -94,10 +95,16 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
                 "dashboard" -> {
                     item {
                         AppCard {
-                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(t("current-balance"), fontSize = 13.sp, color = Tokens.MutedForeground)
-                                Text(Format.rupiah(balance), fontSize = 24.sp, color = if (balance >= 0) Tokens.Emerald400 else Tokens.Red400, fontWeight = FontWeight.Bold)
-                                if (canApprove) AppButton("${t("saldo-awal")}: ${Format.rupiah(data.saldoAwal)}", { saldoDialog = true }, variant = BtnVariant.Ghost, height = 36.dp)
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                                Column {
+                                    Text(t("current-balance"), fontSize = 11.sp, color = Tokens.MutedForeground)
+                                    Text(Format.rupiah(balance), fontSize = 22.sp, color = if (balance >= 0) Tokens.Emerald400 else Tokens.Red400, fontWeight = FontWeight.Bold)
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(t("saldo-awal"), fontSize = 11.sp, color = Tokens.MutedForeground)
+                                    if (canApprove) Text(Format.rupiah(data.saldoAwal), fontSize = 13.sp, color = Tokens.Primary, modifier = Modifier.clickable { saldoDialog = true }.padding(vertical = 4.dp))
+                                    else Text(Format.rupiah(data.saldoAwal), fontSize = 13.sp, color = Color.White)
+                                }
                             }
                         }
                     }
@@ -111,26 +118,36 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
                     item {
                         val months = approved.map { it.tanggal.take(7) }.distinct().sorted().takeLast(6)
                         AppCard {
-                            Column(Modifier.padding(16.dp)) {
-                                Text(t("income-expense-chart"), fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                            Column(Modifier.padding(12.dp)) {
+                                Text(t("income-expense-chart"), fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
                                 LineChartView(
                                     months.map { Format.monthShort(it, s.lang) },
                                     listOf(
                                         Triple(t("income"), months.map { m -> approved.filter { it.tipe == "pemasukan" && it.tanggal.startsWith(m) }.sumOf { it.jumlah } }, Tokens.Emerald400),
                                         Triple(t("expense"), months.map { m -> approved.filter { it.tipe == "pengeluaran" && it.tanggal.startsWith(m) }.sumOf { it.jumlah } }, Tokens.Red400),
                                     ),
-                                    Modifier.padding(top = 12.dp), 200.dp,
+                                    Modifier.padding(top = 8.dp), 130.dp,
                                 )
                             }
                         }
                     }
-                    for (tipe in listOf("pemasukan", "pengeluaran")) item(key = "pie-$tipe") {
-                        val grouped = approved.filter { it.tipe == tipe }.groupBy { catName(it.kategoriId) }.map { it.key to it.value.sumOf { x -> x.jumlah } }
-                        AppCard {
-                            Column(Modifier.padding(16.dp)) {
-                                Text(t(if (tipe == "pemasukan") "income-by-category" else "expense-by-category"), fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
-                                DonutChartView(grouped, Modifier.padding(top = 12.dp), 200.dp)
+                    item(key = "pies") {
+                        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                        androidx.compose.foundation.lazy.LazyRow(
+                            state = listState, flingBehavior = androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior(listState),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            for (tipe in listOf("pemasukan", "pengeluaran")) item(key = "pie-$tipe") {
+                                val grouped = approved.filter { it.tipe == tipe }.groupBy { catName(it.kategoriId) }.map { it.key to it.value.sumOf { x -> x.jumlah } }
+                                AppCard(Modifier.fillParentMaxWidth(0.88f)) {
+                                    Column(Modifier.padding(12.dp)) {
+                                        Text(t(if (tipe == "pemasukan") "income-by-category" else "expense-by-category"), fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                                        DonutChartView(grouped, Modifier.padding(top = 8.dp), 120.dp)
+                                    }
+                                }
                             }
+                        }
+                    }
                         }
                     }
                 }
