@@ -63,9 +63,9 @@ fun DonationsScreen(role: Role, padding: PaddingValues, initialQuery: String, vm
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatCard(t("total-donations"), Format.rupiahCompact(total, s.lang), Modifier.weight(1f), Tokens.Emerald400)
                     StatCard(t("total-donors"), data.donors.size.toString(), Modifier.weight(1f))
+                    StatCard(t("average-donation"), Format.rupiahCompact(if (data.donations.isEmpty()) 0.0 else total / data.donations.size, s.lang), Modifier.weight(1f))
                 }
             }
-            item { StatCard(t("average-donation"), Format.rupiah(if (data.donations.isEmpty()) 0.0 else total / data.donations.size)) }
             item {
                 FilterRow {
                     SearchField(search, { search = it }, t("search-donations"))

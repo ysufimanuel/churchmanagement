@@ -101,9 +101,13 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
                             }
                         }
                     }
-                    item { StatCard(t("total-income"), Format.rupiah(income), valueColor = Tokens.Emerald400) }
-                    item { StatCard(t("total-expense"), Format.rupiah(expense), valueColor = Tokens.Red400) }
-                    item { StatCard(t("total-donors"), data.donors.size.toString()) }
+                    item {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            StatCard(t("total-income"), Format.rupiahCompact(income, s.lang), Modifier.weight(1f), Tokens.Emerald400)
+                            StatCard(t("total-expense"), Format.rupiahCompact(expense, s.lang), Modifier.weight(1f), Tokens.Red400)
+                            StatCard(t("total-donors"), data.donors.size.toString(), Modifier.weight(1f))
+                        }
+                    }
                     item {
                         val months = approved.map { it.tanggal.take(7) }.distinct().sorted().takeLast(6)
                         AppCard {

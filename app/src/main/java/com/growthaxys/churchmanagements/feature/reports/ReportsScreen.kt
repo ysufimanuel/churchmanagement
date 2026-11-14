@@ -110,10 +110,14 @@ fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()
             item {
                 ReportCard(t("system-stats"), t("system-overview"), "system-report", {
                     Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        StatCard(t("total-members"), d.members.size.toString())
-                        StatCard("Total acara", d.eventCount.toString())
-                        StatCard("Total kehadiran", d.attendance.size.toString())
-                        StatCard("Total donasi", Format.rupiah(d.donations.sumOf { it.jumlah }))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            StatCard(t("total-members"), d.members.size.toString(), Modifier.weight(1f))
+                            StatCard("Total acara", d.eventCount.toString(), Modifier.weight(1f))
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            StatCard("Total kehadiran", d.attendance.size.toString(), Modifier.weight(1f))
+                            StatCard("Total donasi", Format.rupiahCompact(d.donations.sumOf { it.jumlah }, LocalStrings.current.lang), Modifier.weight(1f))
+                        }
                     }
                 }) {
                     listOf(
