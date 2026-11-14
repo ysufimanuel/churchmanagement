@@ -89,7 +89,7 @@ fun DashboardScreen(role: Role, userName: String, padding: PaddingValues, onOpen
             }
             tiles.forEachIndexed { index, tile ->
                 item(key = "dashboard-stat-${tile.route}") {
-                    StatTile(tile, s.lang, Modifier.fillMaxWidth().enterAnim(delayMs = 70 + index * 45, dy = 14.dp, durationMs = 420)) {
+                    StatTile(tile, s.lang, Modifier.fillMaxWidth().enterAnim(delayMs = 70 + index * 45, dx = (-10).dp, dy = 14.dp, durationMs = 420)) {
                         onOpen(tile.route)
                     }
                 }
@@ -101,17 +101,17 @@ fun DashboardScreen(role: Role, userName: String, padding: PaddingValues, onOpen
                 DashboardListCard(t("upcoming-events"), upcomingEvents, "events", onOpen)
             }
             item {
-                ChartCard(t("attendance-stats"), Modifier.fillMaxWidth().enterAnim(delayMs = 120)) {
+                ChartCard(t("attendance-stats"), Modifier.fillMaxWidth().enterAnim(delayMs = 120, dx = (-8).dp, dy = 10.dp)) {
                     BarChartView(d.attendanceChart, Modifier.padding(top = 8.dp), 190.dp)
                 }
             }
             item {
-                ChartCard(t("member-distribution"), Modifier.fillMaxWidth().enterAnim(delayMs = 160)) {
+                ChartCard(t("member-distribution"), Modifier.fillMaxWidth().enterAnim(delayMs = 160, dx = (-8).dp, dy = 10.dp)) {
                     DonutChartView(d.memberChart.map { it.first to it.second.toDouble() }, Modifier.padding(top = 8.dp), 200.dp, centerLabel = t("members"))
                 }
             }
             item {
-                ChartCard(t("donation-trend"), Modifier.fillMaxWidth().enterAnim(delayMs = 200), Icons.Outlined.TrendingUp) {
+                ChartCard(t("donation-trend"), Modifier.fillMaxWidth().enterAnim(delayMs = 200, dx = (-8).dp, dy = 10.dp), Icons.Outlined.TrendingUp) {
                     LineChartView(
                         d.donationTrend.map { Format.monthShort(it.first, s.lang) },
                         listOf(Triple(t("donations"), d.donationTrend.map { it.second }, Tokens.Emerald400)),
@@ -131,7 +131,7 @@ private data class MRow(val title: String, val sub: String, val right: String, v
 
 @Composable
 private fun DashboardListCard(title: String, rows: List<MRow>, route: String, onOpen: (String) -> Unit) {
-    AppCard {
+    AppCard(Modifier.fillMaxWidth().enterAnim(dx = (-8).dp, dy = 10.dp))) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(title, fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
