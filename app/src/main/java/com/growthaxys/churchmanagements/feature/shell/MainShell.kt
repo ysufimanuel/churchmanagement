@@ -51,6 +51,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.width
@@ -95,6 +96,7 @@ import com.growthaxys.churchmanagements.feature.reports.ReportsScreen
 import com.growthaxys.churchmanagements.feature.users.UsersScreen
 import com.growthaxys.churchmanagements.feature.volunteers.VolunteersScreen
 import android.net.Uri
+import kotlin.math.roundToInt
 
 private const val SEARCH_ROUTE = "search"
 
@@ -110,7 +112,7 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
 
     fun go(route: String, q: String? = null) {
         val target = if (q != null) "$route?q=${Uri.encode(q)}" else route
-        nav.navigate(target) { launchSingleTop = true; popUpTo("dashboard") { saveState = false } }
+        nav.navigate(target) { launchSingleTop = true; restoreState = true; popUpTo("dashboard") { saveState = true } }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -119,12 +121,12 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
             Box(Modifier.weight(1f)) {
                 NavHost(
                     nav, startDestination = "dashboard",
-                    enterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220, easing = com.growthaxys.churchmanagements.designsystem.EaseOutStrong)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(220, easing = com.growthaxys.churchmanagements.designsystem.EaseOutStrong)) { it / 40 } },
-                    exitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) },
-                    popEnterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220, easing = com.growthaxys.churchmanagements.designsystem.EaseOutStrong)) },
-                    popExitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) },
+                    enterTransition = { navEnter() },
+                    exitTransition = { navExit() },
+                    popEnterTransition = { navEnter() },
+                    popExitTransition = { navExit() },
                 ) {
-                    val pad = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 112.dp)
+                    val pad = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 104.dp)
                     composable("dashboard") { DashboardScreen(role, profile.nama, pad, onOpen = { go(it) }) }
                     for (r in listOf("members", "families", "groups", "events", "attendance", "donations", "finance", "volunteers", "communication", "reports", "users", "web-manager")) {
                         composable("$r?q={q}", arguments = listOf(navArgument("q") { type = NavType.StringType; nullable = true; defaultValue = null })) { e ->
@@ -149,7 +151,7 @@ fun MainShell(profile: Profile, lang: Lang, onLang: (Lang) -> Unit, onLogout: ()
             }
         }
 
-        BottomNav(current, role, onGo = { go(it) }, onSearch = { searchOpen = true }, onMenu = { menuOpen = true },
+        BottomNav(current, role, menuOpen = menuOpen, searchOpen = searchOpen, onGo = { go(it) }, onSearch = { searchOpen = true }, onMenu = { menuOpen = true },
             modifier = Modifier.align(Alignment.BottomCenter))
     }
 
@@ -175,7 +177,7 @@ private fun TopBar(profile: Profile, onProfile: () -> Unit) {
 }
 
 @Composable
-private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSearch: () -> Unit, onMenu: () -> Unit, modifier: Modifier = Modifier) {
+private fun BottomNav(current: String, role: Role, menuOpen: Boolean, searchOpen: Boolean, onGo: (String) -> Unit, onSearch: () -> Unit, onMenu: () -> Unit, modifier: Modifier = Modifier) {
     val hasWebManager = Rbac.canUseWebManager(role)
     val itemCount = if (hasWebManager) 5 else 4
     val selectedIndex = when {
@@ -197,7 +199,7 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
     ) {
         BoxWithConstraints(
             Modifier.fillMaxWidth().padding(6.dp).height(70.dp)
-                .pointerInput(itemCount, hasWebManager, selectedIndex) {
+                .pointerInput(itemCount, hasWebManager) {
                     fun indexAt(x: Float): Int {
                         val width = size.width.toFloat() / itemCount
                         return (x / width).toInt().coerceIn(0, itemCount - 1)
@@ -238,26 +240,28 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
         ) {
             val itemWidth = maxWidth / itemCount
             val lensW = itemWidth - 6.dp
-            val lensTarget = itemWidth * selectedIndex + (itemWidth - lensW) / 2
-            val settledOffset by androidx.compose.animation.core.animateDpAsState(
-                targetValue = lensTarget,
-                animationSpec = spring(dampingRatio = 0.72f, stiffness = 300f),
-                label = "nav-selection-indicator",
-            )
             val density = LocalDensity.current
+            val itemWpx = with(density) { itemWidth.toPx() }
+            val lensWpx = with(density) { lensW.toPx() }
+            val maxX = with(density) { maxWidth.toPx() } - lensWpx
+            val highlight = when { menuOpen -> itemCount - 1; searchOpen -> 2; else -> selectedIndex }
+            val targetX = itemWpx * highlight + (itemWpx - lensWpx) / 2
+            val lensX = remember { androidx.compose.animation.core.Animatable(targetX) }
             val dragging = dragX != null
-            val indicatorOffset = dragX?.let { x ->
-                with(density) { x.toDp() - lensW / 2 }.coerceIn(0.dp, maxWidth - lensW)
-            } ?: settledOffset
-            val activeIndex = dragIndex ?: selectedIndex
-            // Liquid stretch: the lens elongates while travelling and settles back, like iOS glass.
-            val travel = if (dragging) 0.35f else (kotlin.math.abs((lensTarget - settledOffset).value) / itemWidth.value).coerceIn(0f, 1f)
+            // One animatable owns the lens position: it follows the finger while dragging and springs
+            // from wherever it is (keeping velocity) to the selected tab on release or tap.
+            LaunchedEffect(dragX) { dragX?.let { lensX.snapTo((it - lensWpx / 2).coerceIn(0f, maxX)) } }
+            LaunchedEffect(highlight, dragging, itemWpx) {
+                if (!dragging) lensX.animateTo(targetX, spring(dampingRatio = 0.74f, stiffness = 320f))
+            }
+            val activeIndex = dragIndex ?: highlight
+            val travel = if (dragging) 0.35f else (kotlin.math.abs(lensX.value - targetX) / itemWpx).coerceIn(0f, 1f)
             val lift by animateFloatAsState(if (dragging) 1.12f else 1f, spring(dampingRatio = 0.55f, stiffness = 420f), label = "nav-lens-lift")
 
             GlassLens(
                 Modifier
                     .align(Alignment.CenterStart)
-                    .offset(x = indicatorOffset)
+                    .offset { androidx.compose.ui.unit.IntOffset(lensX.value.roundToInt(), 0) }
                     .width(lensW)
                     .fillMaxHeight()
                     .graphicsLayer {
@@ -412,4 +416,30 @@ private fun GlassLens(modifier: Modifier = Modifier) {
                 .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.30f), Color.Transparent))),
         )
     }
+}
+
+
+private fun navIndex(route: String?): Int = when (route?.substringBefore("?")) {
+    "dashboard" -> 0
+    "finance" -> 1
+    "web-manager" -> 3
+    else -> 4
+}
+
+private fun androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.navDir(): Int =
+    Integer.signum(navIndex(targetState.destination.route) - navIndex(initialState.destination.route))
+
+/** Content slides the same way the bottom-nav lens travels (same ease, same direction), with a soft fade. */
+private fun androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.navEnter(): androidx.compose.animation.EnterTransition {
+    val dir = navDir()
+    val ease = com.growthaxys.churchmanagements.designsystem.EaseOutStrong
+    return androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(260, 50, ease)) +
+        androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(340, 0, ease)) { (it * 0.14f * dir).toInt() }
+}
+
+private fun androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.navExit(): androidx.compose.animation.ExitTransition {
+    val dir = navDir()
+    val ease = com.growthaxys.churchmanagements.designsystem.EaseOutStrong
+    return androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(140)) +
+        androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(260, 0, ease)) { (-it * 0.08f * dir).toInt() }
 }
