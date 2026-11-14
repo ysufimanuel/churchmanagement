@@ -111,16 +111,16 @@ fun ReportsScreen(padding: PaddingValues, vm: ReportsViewModel = hiltViewModel()
                 ReportCard(t("system-stats"), t("system-overview"), "system-report", {
                     Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         StatCard(t("total-members"), d.members.size.toString())
-                        StatCard(t("active-events"), d.eventCount.toString())
-                        StatCard(t("attendance-this-week"), d.attendance.size.toString())
-                        StatCard(t("donations-this-month"), Format.rupiah(d.donations.sumOf { it.jumlah }))
+                        StatCard("Total acara", d.eventCount.toString())
+                        StatCard("Total kehadiran", d.attendance.size.toString())
+                        StatCard("Total donasi", Format.rupiah(d.donations.sumOf { it.jumlah }))
                     }
                 }) {
                     listOf(
                         mapOf("Metrik" to s.t("total-members"), "Nilai" to d.members.size),
-                        mapOf("Metrik" to s.t("active-events"), "Nilai" to d.eventCount),
-                        mapOf("Metrik" to s.t("attendance-this-week"), "Nilai" to d.attendance.size),
-                        mapOf("Metrik" to s.t("donations"), "Nilai" to d.donations.sumOf { it.jumlah }),
+                        mapOf("Metrik" to "Total acara", "Nilai" to d.eventCount),
+                        mapOf("Metrik" to "Total kehadiran", "Nilai" to d.attendance.size),
+                        mapOf("Metrik" to "Total donasi", "Nilai" to d.donations.sumOf { it.jumlah }),
                     )
                 }
             }
