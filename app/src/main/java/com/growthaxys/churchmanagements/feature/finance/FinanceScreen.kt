@@ -92,24 +92,18 @@ fun FinanceScreen(role: Role, padding: PaddingValues, initialQuery: String, vm: 
 
             when (tab) {
                 "dashboard" -> {
-                    item { StatCard(t("current-balance"), Format.rupiah(balance), valueColor = if (balance >= 0) Tokens.Emerald400 else Tokens.Red400) }
-                    item {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            StatCard(t("total-income"), Format.rupiahCompact(income, s.lang), Modifier.weight(1f), Tokens.Emerald400)
-                            StatCard(t("total-expense"), Format.rupiahCompact(expense, s.lang), Modifier.weight(1f), Tokens.Red400)
-                        }
-                    }
                     item {
                         AppCard {
-                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(t("saldo-awal"), fontSize = 13.sp, color = Tokens.MutedForeground)
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(Format.rupiah(data.saldoAwal), fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
-                                    if (canApprove) AppButton(t("act-edit"), { saldoDialog = true }, variant = BtnVariant.Secondary, height = 36.dp)
-                                }
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(t("current-balance"), fontSize = 13.sp, color = Tokens.MutedForeground)
+                                Text(Format.rupiah(balance), fontSize = 24.sp, color = if (balance >= 0) Tokens.Emerald400 else Tokens.Red400, fontWeight = FontWeight.Bold)
+                                if (canApprove) AppButton("${t("saldo-awal")}: ${Format.rupiah(data.saldoAwal)}", { saldoDialog = true }, variant = BtnVariant.Ghost, height = 36.dp)
                             }
                         }
                     }
+                    item { StatCard(t("total-income"), Format.rupiah(income), valueColor = Tokens.Emerald400) }
+                    item { StatCard(t("total-expense"), Format.rupiah(expense), valueColor = Tokens.Red400) }
+                    item { StatCard(t("total-donors"), data.donors.size.toString()) }
                     item {
                         val months = approved.map { it.tanggal.take(7) }.distinct().sorted().takeLast(6)
                         AppCard {
