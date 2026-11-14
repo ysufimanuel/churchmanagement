@@ -103,7 +103,7 @@ private val DEMO = listOf(
 )
 
 @Composable
-fun LoginScreen(lang: Lang, onLang: (Lang) -> Unit, vm: LoginViewModel = hiltViewModel()) {
+fun LoginScreen(lang: Lang, onLang: (Lang) -> Unit, onRegister: () -> Unit, vm: LoginViewModel = hiltViewModel()) {
     val ui by vm.ui.collectAsStateWithLifecycle()
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -177,7 +177,7 @@ fun LoginScreen(lang: Lang, onLang: (Lang) -> Unit, vm: LoginViewModel = hiltVie
                 Row(Modifier.enterAnim(1400, 8.dp, 350), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(t("no-church-account"), fontSize = 12.sp, color = Color(0xFF94A3B8))
                     Row(
-                        Modifier.clickable { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("${BuildConfig.WEB_BASE_URL}/register"))) },
+                        Modifier.clickable(onClick = onRegister),
                         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Icon(Icons.Outlined.PersonAdd, null, Modifier.size(14.dp), tint = Color(0xFF67E8F9))
