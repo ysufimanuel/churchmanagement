@@ -15,6 +15,10 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.consume
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -178,6 +182,9 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
         current == "web-manager" && hasWebManager -> 3
         else -> itemCount - 1
     }
+    var dragX by remember { mutableStateOf<Float?>(null) }
+    var dragIndex by remember { mutableStateOf<Int?>(null) }
+    val haptics = LocalHapticFeedback.current
 
     Glass(
         modifier.navigationBarsPadding()
@@ -187,16 +194,59 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
         shape = RoundedCornerShape(32.dp),
     ) {
         BoxWithConstraints(
-            Modifier.fillMaxWidth().padding(6.dp).height(68.dp),
+            Modifier.fillMaxWidth().padding(6.dp).height(68.dp)
+                .pointerInput(itemCount, hasWebManager, selectedIndex) {
+                    fun indexAt(x: Float): Int {
+                        val width = size.width.toFloat() / itemCount
+                        return (x / width).toInt().coerceIn(0, itemCount - 1)
+                    }
+                    detectDragGestures(
+                        onDragStart = { start ->
+                            dragX = start.x.coerceIn(22f, size.width.toFloat() - 22f)
+                            dragIndex = indexAt(start.x)
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        },
+                        onDragEnd = {
+                            val target = dragIndex
+                            dragX = null
+                            dragIndex = null
+                            when (target) {
+                                0 -> onGo("dashboard")
+                                1 -> onGo("finance")
+                                2 -> onSearch()
+                                3 -> if (hasWebManager) onGo("web-manager") else onMenu()
+                                itemCount - 1 -> onMenu()
+                            }
+                        },
+                        onDragCancel = {
+                            dragX = null
+                            dragIndex = null
+                        },
+                    ) { change, _ ->
+                        change.consume()
+                        val nextX = change.position.x.coerceIn(22f, size.width.toFloat() - 22f)
+                        val nextIndex = indexAt(nextX)
+                        if (nextIndex != dragIndex) {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        }
+                        dragX = nextX
+                        dragIndex = nextIndex
+                    }
+                },
         ) {
             val itemWidth = maxWidth / itemCount
-            val indicatorOffset by androidx.compose.animation.core.animateDpAsState(
+            val settledOffset by androidx.compose.animation.core.animateDpAsState(
                 targetValue = itemWidth * selectedIndex + (itemWidth - 44.dp) / 2,
                 animationSpec = spring(dampingRatio = 0.78f, stiffness = 360f),
                 label = "nav-selection-indicator",
             )
+            val density = LocalDensity.current
+            val indicatorOffset = dragX?.let { x ->
+                with(density) { x.toDp() - 22.dp }.coerceIn(0.dp, maxWidth - 44.dp)
+            } ?: settledOffset
+            val activeIndex = dragIndex ?: selectedIndex
 
-            // One shared glass bubble glides between destinations; the dock itself stays still.
+            // During a swipe, the shared bubble tracks the finger continuously.
             Box(
                 Modifier
                     .align(Alignment.CenterStart)
@@ -210,41 +260,13 @@ private fun BottomNav(current: String, role: Role, onGo: (String) -> Unit, onSea
                 Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                NavItem(
-                    Destinations.byRoute("dashboard")!!.icon,
-                    t("dashboard"),
-                    current == "dashboard",
-                    Modifier.weight(1f),
-                ) { onGo("dashboard") }
-                NavItem(
-                    Destinations.byRoute("finance")!!.icon,
-                    t("finance"),
-                    current == "finance",
-                    Modifier.weight(1f),
-                ) { onGo("finance") }
-                NavItem(
-                    Icons.Outlined.Search,
-                    t("nav-search"),
-                    false,
-                    Modifier.weight(1f),
-                    onSearch,
-                )
+                NavItem(Destinations.byRoute("dashboard")!!.icon, t("dashboard"), activeIndex == 0, Modifier.weight(1f)) { onGo("dashboard") }
+                NavItem(Destinations.byRoute("finance")!!.icon, t("finance"), activeIndex == 1, Modifier.weight(1f)) { onGo("finance") }
+                NavItem(Icons.Outlined.Search, t("nav-search"), activeIndex == 2, Modifier.weight(1f), onSearch)
                 if (hasWebManager) {
-                    NavItem(
-                        Icons.Outlined.Language,
-                        t("web-manager"),
-                        current == "web-manager",
-                        Modifier.weight(1f),
-                    ) { onGo("web-manager") }
+                    NavItem(Icons.Outlined.Language, t("web-manager"), activeIndex == 3, Modifier.weight(1f)) { onGo("web-manager") }
                 }
-                val inMenu = current != "dashboard" && current != "finance" && current != "web-manager"
-                NavItem(
-                    Icons.Outlined.Menu,
-                    t("nav-menu"),
-                    inMenu,
-                    Modifier.weight(1f),
-                    onMenu,
-                )
+                NavItem(Icons.Outlined.Menu, t("nav-menu"), activeIndex == itemCount - 1, Modifier.weight(1f), onMenu)
             }
         }
     }
