@@ -60,6 +60,7 @@ fun Modifier.shimmer(): Modifier {
 fun Modifier.enterAnim(
     delayMs: Int = 0,
     dy: Dp = 14.dp,
+    dx: Dp = 0.dp,
     durationMs: Int = 400,
     fromScale: Float = 1f,
     fromRotate: Float = 0f,
@@ -68,9 +69,11 @@ fun Modifier.enterAnim(
     val a = remember { Animatable(0f) }
     LaunchedEffect(Unit) { a.animateTo(1f, tween(durationMs, delayMs, easing)) }
     val dyPx = with(LocalDensity.current) { dy.toPx() }
+    val dxPx = with(LocalDensity.current) { dx.toPx() }
     return this.graphicsLayer {
         val v = a.value
         alpha = (v * 1.6f).coerceIn(0f, 1f) // reaches full opacity before the move settles (autoAlpha feel)
+        translationX = (1f - v) * dxPx
         translationY = (1f - v) * dyPx
         val s = fromScale + (1f - fromScale) * v
         scaleX = s; scaleY = s
